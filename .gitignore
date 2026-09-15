@@ -1,0 +1,51 @@
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+!.env.*.example
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+*.mobileprovision
+id_rsa*
+id_ed25519*
+secrets/
+credentials/
+
+# Dependencies and generated files
+node_modules/
+vendor/
+Pods/
+.gradle/
+build/
+dist/
+coverage/
+DerivedData/
+.phpunit.cache/
+.phpunit.result.cache
+*.log
+
+# Runtime and personal data
+*.sqlite
+*.sqlite3
+*.sqlite-wal
+*.sqlite-shm
+*.dump
+*.sql.gz
+backups/
+data/
+tmp/
+temp/
+apps/api/storage/*.key
+apps/api/storage/logs/*
+
+# Machine-specific files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+local.properties
+*.local
