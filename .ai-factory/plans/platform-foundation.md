@@ -272,7 +272,7 @@ Deploy: immutable image SHA, staging, health/readiness, expand-contract migratio
 - [ ] A2. Создать подробный ERD, словарь колонок, FK/CHECK/index/partition DDL и таблицу доступа всех ролей. Файлы: docs/database/*, docs/security/access-matrix.md. Logging: схема audit event. Зависимости: A1.
 - [ ] A3. Описать OpenAPI, event contracts, billing/consent/engine state machines и ADR. Файлы: packages/contracts/openapi.yaml, docs/adr/*.md. Logging: correlation IDs и безопасные error codes. Зависимости: A2.
 - [x] A4a. Инициализировать Git/main, origin, ignore и структуру monorepo. Пользователь предоставил git@github.com:Closhar/KIRH-GEO.git; пустой remote доступен. Файлы: .gitignore, .gitattributes, README.md, apps/, infra/, packages/, docs/. Logging: git checks без секретов. Зависимости: remote destination выполнена.
-- [ ] A4b. Проверить содержимое первого коммита, синхронизировать main и проверить совпадение local/remote SHA. Файлы: начальное дерево репозитория. Logging: commit SHA и статус без секретов. Зависимости: A4a.
+- [x] A4b. Проверено содержимое первого коммита и исключения секретов; main синхронизирован. Local/remote SHA первого коммита совпали: 0ba19e53f0b0bccd5ffa04bea0dc0feb5bc561ba. Файлы: начальное дерево репозитория. Logging: commit SHA и статус без секретов. Зависимости: A4a выполнена.
 
 Gate A: согласованная архитектура, SQL-дизайн, permission/feature matrix и API без спорных продуктовых правил.
 
