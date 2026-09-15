@@ -8,7 +8,7 @@
 
 [Архитектура, схема данных и этапы реализации](.ai-factory/plans/platform-foundation.md).
 
-Стек: React Native + TypeScript, Laravel API, PostgreSQL + PostGIS, Redis, WebSocket и push. Админка планируется внутри Laravel. Облачный PostgreSQL Beget рассматривается при подтверждении PostGIS и условий восстановления.
+Стек: React Native + TypeScript, Laravel API, PostgreSQL + PostGIS, Redis, WebSocket и push. Админка планируется внутри Laravel. На старте используем PostgreSQL + PostGIS под собственным управлением в изолированном окружении проекта на сервере. Облачную БД рассматриваем позднее, при росте нагрузки; переход не требует изменения доменной модели.
 
 ## Структура
 
