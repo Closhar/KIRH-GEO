@@ -55,6 +55,7 @@ import {
 import { HomeDashboard } from "./HomeDashboard";
 import { PrivacyPanel } from "../features/privacy/PrivacyPanel";
 import { getBiometricEnabled, setBiometricEnabled } from "../shared/session";
+import Ionicons from "@expo/vector-icons/Ionicons";
 
 type Tab = "home" | "sender" | "group" | "settings";
 type TrackingStatus = {
@@ -1439,7 +1440,7 @@ export function HomeScreen({
                 accessibilityRole="button"
                 style={[s.drawerAction, { borderColor: themeColors.purple }]}
               >
-                <Text style={{ color: themeColors.ink, fontSize: 52, lineHeight: 52, textAlign: "center", textAlignVertical: "center", includeFontPadding: false, padding: 0, margin: 0 }}>{dark ? "◐" : "◑"}</Text>
+                <Ionicons name={dark ? "sunny-outline" : "moon-outline"} size={28} color={themeColors.ink} />
               </Pressable>
               <Pressable
                 onPress={() => {
@@ -1450,7 +1451,7 @@ export function HomeScreen({
                 accessibilityRole="button"
                 style={[s.drawerAction, { borderColor: themeColors.danger }]}
               >
-                <Text style={{ color: themeColors.danger, fontSize: 52, lineHeight: 52, textAlign: "center", textAlignVertical: "center", includeFontPadding: false, padding: 0, margin: 0 }}>↩</Text>
+                <Ionicons name="log-out-outline" size={28} color={themeColors.danger} />
               </Pressable>
             </View>
           </View>
@@ -1466,9 +1467,19 @@ export function HomeScreen({
               style={s.drawerItem}
             >
               <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-                <Text style={{ color: themeColors.purple, fontSize: 28, width: 30, textAlign: "center" }}>
-                  {item.icon}
-                </Text>
+                <Ionicons
+                  name={
+                    item.id === "home"
+                      ? "home-outline"
+                      : item.id === "sender"
+                        ? "arrow-up-circle-outline"
+                        : item.id === "group"
+                          ? "people-outline"
+                          : "settings-outline"
+                  }
+                  size={24}
+                  color={themeColors.purple}
+                />
                 <Text style={[s.drawerItemText, { color: themeColors.ink }]}>{item.title}</Text>
               </View>
             </Pressable>
