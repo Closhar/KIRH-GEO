@@ -35,6 +35,8 @@ CMD ["php-fpm", "-F"]
 
 FROM node:22.13-alpine AS share-builder
 WORKDIR /share
+ARG VITE_API_BASE_URL=https://geo.kirhtarg.ru/api/v1
+ENV VITE_API_BASE_URL=${VITE_API_BASE_URL}
 COPY apps/share-web/package.json apps/share-web/package-lock.json ./
 RUN --mount=type=cache,target=/root/.npm npm ci
 COPY apps/share-web/ ./
