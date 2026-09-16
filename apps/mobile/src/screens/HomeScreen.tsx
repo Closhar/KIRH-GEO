@@ -81,7 +81,7 @@ type LiveSession = { id: string; subject_id: string; initiator_id: string; statu
 type SosEvent = { id: string; user_id: string; status: string; started_at: string };
 const tabs: { id: Tab; title: string; icon: string }[] = [
   { id: "home", title: "Главная", icon: "◎" },
-  { id: "sender", title: "Передача", icon: "↗" },
+  { id: "sender", title: "Передача", icon: "⇪" },
   { id: "group", title: "Группа", icon: "♧" },
   { id: "settings", title: "Настройки", icon: "⚙" },
 ];
@@ -1411,13 +1411,15 @@ export function HomeScreen({
             <Text style={[s.drawerPatternIcon, { color: themeColors.purple }]}>◎</Text>
             <View style={[s.drawerRing, { borderColor: themeColors.green }]} />
           </View>
-          <View style={[ui.row, { marginTop: 18 }]}>
-            <Image
-              source={require("../../assets/kt-geo-logo.png")}
-              style={{ width: 42, height: 42 }}
-              resizeMode="contain"
-            />
-            <Text style={[s.drawerBrand, { color: themeColors.purple }]}>KIRH GEO</Text>
+          <View style={[ui.row, { marginTop: 18, justifyContent: "space-between" }]}>
+            <View style={ui.row}>
+              <Image
+                source={require("../../assets/kt-geo-logo.png")}
+                style={{ width: 42, height: 42 }}
+                resizeMode="contain"
+              />
+              <Text style={[s.drawerBrand, { color: themeColors.purple }]}>KIRH GEO</Text>
+            </View>
             <Pressable onPress={closeMenu} accessibilityRole="button">
               <Text style={[s.drawerClose, { color: themeColors.muted }]}>✕</Text>
             </Pressable>
@@ -1433,7 +1435,7 @@ export function HomeScreen({
                 accessibilityRole="button"
                 style={[s.drawerAction, { borderColor: themeColors.line }]}
               >
-                <Text style={{ color: themeColors.ink, fontSize: 20 }}>{dark ? "◐" : "◑"}</Text>
+                <Text style={{ color: themeColors.ink, fontSize: 26 }}>{dark ? "◐" : "◑"}</Text>
               </Pressable>
               <Pressable
                 onPress={() => {
@@ -1443,7 +1445,7 @@ export function HomeScreen({
                 accessibilityRole="button"
                 style={[s.drawerAction, { borderColor: themeColors.line }]}
               >
-                <Text style={{ color: themeColors.danger, fontSize: 20 }}>↪</Text>
+                <Text style={{ color: themeColors.danger, fontSize: 26 }}>→</Text>
               </Pressable>
             </View>
           </View>
@@ -1458,7 +1460,7 @@ export function HomeScreen({
               style={s.drawerItem}
             >
               <Text style={[s.drawerItemText, { color: themeColors.ink }]}>
-                <Text style={{ color: themeColors.purple, marginRight: 10 }}>{item.icon}</Text>
+                <Text style={{ color: themeColors.purple, marginRight: 14, fontSize: 22 }}>{item.icon}</Text>
                 {item.title}
               </Text>
             </Pressable>
