@@ -18,7 +18,7 @@ import {
   Title,
   ui,
 } from "../ui/components";
-import { colors as c } from "../ui/theme";
+import { colors as c, useTheme } from "../ui/theme";
 import { AuthMode } from "./types";
 import { api } from "../shared/api";
 
@@ -36,6 +36,7 @@ export function AuthScreen({
   initialCode?: string;
   onBack?: () => void;
 }) {
+  const { colors: themeColors } = useTheme();
   const [mode, setMode] = useState<AuthMode>(initialMode);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -100,7 +101,7 @@ export function AuthScreen({
   }
   return (
     <KeyboardAvoidingView
-      style={ui.page}
+      style={[ui.page, { backgroundColor: themeColors.background }]}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
       <ScrollView

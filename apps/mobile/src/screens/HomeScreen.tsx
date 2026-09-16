@@ -463,8 +463,8 @@ export function HomeScreen({
   }, [tab, workspaceId]);
 
   return (
-    <View style={ui.page}>
-      <View style={s.header}>
+    <View style={[ui.page, { backgroundColor: themeColors.background }]}>
+      <View style={[s.header, { backgroundColor: themeColors.surface, borderColor: themeColors.line }]}>
         <Brand compact />
         <View style={ui.row}>
           <View
@@ -1353,7 +1353,7 @@ export function HomeScreen({
           </Button>
         )}
       </ScrollView>
-      <View style={s.tabs}>
+      <View style={[s.tabs, { backgroundColor: themeColors.surface, borderColor: themeColors.line }]}>
         {tabs.map((item) => (
           <Pressable
             accessibilityRole="tab"
@@ -1428,7 +1428,7 @@ export function HomeScreen({
             style={s.drawerItem}
           >
             <Text style={s.drawerItemText}>
-              {dark ? "Светлая тема" : "Тёмная тема"}
+              {dark ? "☀ Светлая тема" : "☾ Тёмная тема"}
             </Text>
           </Pressable>
           <Pressable

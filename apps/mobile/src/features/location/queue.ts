@@ -7,6 +7,18 @@ export interface TrackingState {enabled: boolean; workspaceId: string; deviceId:
 export interface Point {client_point_id: string; captured_at: string; latitude: number; longitude: number; accuracy_m: number; battery_pct: number | null; mode: Mode; consent_revision: number}
 export interface Batch {device_id: string; client_batch_id: string; points: Point[]}
 let database: Promise<SQLite.SQLiteDatabase> | undefined;
+function isDatabaseError(error: unknown): boolean {
+  const text = String(error instanceof Error ? error.message : error);
+  return text.includes("not a database") || text.includes("prepareAsync");
+}
+async function resetDatabase(): Promise<void> {
+  database = undefined;
+  try {
+    await SQLite.deleteDatabaseAsync("kirh-geo-queue.db");
+  } catch {
+    // Ignore missing/locked files and attempt a fresh open.
+  }
+}
 export function db(): Promise<SQLite.SQLiteDatabase> {
   if (database) return database;
   database = openDatabase().catch(async () => {
@@ -36,11 +48,24 @@ async function openDatabase(): Promise<SQLite.SQLiteDatabase> {
     return connection;
 }
 export async function state(): Promise<TrackingState | null> {
-  const row = await (await db()).getFirstAsync<{value: string}>('SELECT value FROM state WHERE id=1');
-  return row ? JSON.parse(row.value) as TrackingState : null;
+  try {
+    const row = await (await db()).getFirstAsync<{value: string}>('SELECT value FROM state WHERE id=1');
+    return row ? JSON.parse(row.value) as TrackingState : null;
+  } catch (error) {
+    if (!isDatabaseError(error)) throw error;
+    await resetDatabase();
+    const row = await (await db()).getFirstAsync<{value: string}>('SELECT value FROM state WHERE id=1');
+    return row ? JSON.parse(row.value) as TrackingState : null;
+  }
 }
 export async function setState(value: TrackingState): Promise<void> {
-  await (await db()).runAsync('INSERT INTO state(id,value) VALUES(1,?) ON CONFLICT(id) DO UPDATE SET value=excluded.value', JSON.stringify(value));
+  try {
+    await (await db()).runAsync('INSERT INTO state(id,value) VALUES(1,?) ON CONFLICT(id) DO UPDATE SET value=excluded.value', JSON.stringify(value));
+  } catch (error) {
+    if (!isDatabaseError(error)) throw error;
+    await resetDatabase();
+    await (await db()).runAsync('INSERT INTO state(id,value) VALUES(1,?) ON CONFLICT(id) DO UPDATE SET value=excluded.value', JSON.stringify(value));
+  }
 }
 // Native tasks and UI run concurrently. A delayed network result must never undo a pause or overwrite a newer grant.
 export async function updateActive(expected: TrackingState, patch: Partial<TrackingState>): Promise<TrackingState | null> {
