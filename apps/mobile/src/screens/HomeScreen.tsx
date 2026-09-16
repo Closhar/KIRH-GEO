@@ -1459,7 +1459,7 @@ export function HomeScreen({
               }}
               style={s.drawerItem}
             >
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
                 <Text style={{ color: themeColors.purple, fontSize: 28, width: 30, textAlign: "center" }}>
                   {item.icon}
                 </Text>
@@ -1523,7 +1523,7 @@ const s = StyleSheet.create({
   drawerAction: {
     width: 58,
     height: 58,
-    borderRadius: 29,
+    borderRadius: 12,
     borderWidth: 1,
     alignItems: "center",
     justifyContent: "center",
@@ -1567,8 +1567,8 @@ const s = StyleSheet.create({
     borderWidth: 2,
   },
   drawerItem: {
-    paddingVertical: 15,
-    paddingHorizontal: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 6,
     borderRadius: 14,
   },
   drawerItemText: { color: c.ink, fontSize: 17, fontWeight: "700" },
