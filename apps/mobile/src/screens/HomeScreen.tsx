@@ -1440,7 +1440,7 @@ export function HomeScreen({
                 accessibilityRole="button"
                 style={[s.drawerAction, { borderColor: themeColors.purple }]}
               >
-                <Ionicons name={dark ? "sunny-outline" : "moon-outline"} size={28} color={themeColors.ink} />
+                <Ionicons name={dark ? "sunny-outline" : "moon-outline"} size={38} color={themeColors.ink} />
               </Pressable>
               <Pressable
                 onPress={() => {
@@ -1451,7 +1451,7 @@ export function HomeScreen({
                 accessibilityRole="button"
                 style={[s.drawerAction, { borderColor: themeColors.danger }]}
               >
-                <Ionicons name="log-out-outline" size={28} color={themeColors.danger} />
+                <Ionicons name="log-out-outline" size={38} color={themeColors.danger} />
               </Pressable>
             </View>
           </View>
@@ -1538,9 +1538,9 @@ const s = StyleSheet.create({
   drawerBrand: { fontSize: 19, fontWeight: "800", letterSpacing: 1.4 },
   drawerUser: { fontSize: 16, fontWeight: "800" },
   drawerAction: {
-    width: 52,
-    height: 52,
-    borderRadius: 12,
+    width: 46,
+    height: 46,
+    borderRadius: 10,
     borderWidth: 1.5,
     alignItems: "center",
     justifyContent: "center",
