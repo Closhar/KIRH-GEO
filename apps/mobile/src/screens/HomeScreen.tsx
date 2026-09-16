@@ -1546,11 +1546,6 @@ const s = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: "transparent",
     padding: 0,
-    shadowColor: "#000",
-    shadowOpacity: 0.18,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 3,
   },
   drawerOrbOne: {
     position: "absolute",
