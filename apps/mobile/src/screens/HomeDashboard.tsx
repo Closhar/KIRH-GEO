@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, Animated, Share, StyleSheet, Text, View } from "react-native";
 import * as Location from "expo-location";
-import { Camera, Map, Marker } from "@maplibre/maplibre-react-native";
+import { Camera, Map, ViewAnnotation } from "@maplibre/maplibre-react-native";
 import { Button, Card, Title, ui } from "../ui/components";
 import { useTheme } from "../ui/theme";
 import { MapScreen } from "./MapScreen";
@@ -170,11 +170,18 @@ export function HomeDashboard({
         <Card style={{ padding: 0, overflow: "hidden", height: 220 }}>
           <Map style={{ flex: 1 }} mapStyle={OSM_STYLE as any}>
             <Camera center={[deviceLocation.longitude, deviceLocation.latitude]} zoom={15} />
-            <Marker lngLat={[deviceLocation.longitude, deviceLocation.latitude]}>
+            <ViewAnnotation
+              draggable
+              lngLat={[deviceLocation.longitude, deviceLocation.latitude]}
+              onDragEnd={(event) => {
+                const [longitude, latitude] = event.nativeEvent.lngLat;
+                setDeviceLocation((current) => current ? { ...current, latitude, longitude } : current);
+              }}
+            >
               <View style={[deviceMarker(c).marker, { backgroundColor: c.purple }]}>
                 <Text style={{ color: "#fff", fontWeight: "900" }}>●</Text>
               </View>
-            </Marker>
+            </ViewAnnotation>
           </Map>
         </Card>
       )}

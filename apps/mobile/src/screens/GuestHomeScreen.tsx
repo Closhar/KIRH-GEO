@@ -10,7 +10,7 @@ export function GuestHomeScreen({ onOpenAuth }: { onOpenAuth: (mode?: "login" | 
   const { colors: c, dark, toggle } = useTheme();
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: c.background }}>
-      <ScrollView contentContainerStyle={ui.content}>
+      <ScrollView contentContainerStyle={[ui.content, { paddingTop: 0 }]}>
         <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
           <Brand compact />
           <Pressable
