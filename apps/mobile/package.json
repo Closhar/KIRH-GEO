@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "main": "index.ts",
   "dependencies": {
+    "@maplibre/maplibre-react-native": "^11.3.10",
     "expo": "~57.0.23",
     "expo-battery": "~57.0.3",
     "expo-crypto": "~57.0.3",
@@ -18,7 +19,6 @@
     "expo-task-manager": "~57.0.18",
     "react": "19.2.3",
     "react-native": "0.86.3",
-    "react-native-maps": "1.27.2",
     "react-native-safe-area-context": "~5.7.0"
   },
   "devDependencies": {

@@ -23,6 +23,7 @@
       "favicon": "./assets/kt-geo-logo.png"
     },
     "plugins": [
+      "@maplibre/maplibre-react-native",
       ["expo-location", {"locationAlwaysAndWhenInUsePermission": "KIRH GEO передаёт вашу геопозицию только выбранным вами людям. Передачу можно остановить в приложении.", "locationWhenInUsePermission": "Разрешите геопозицию для карты и добровольного обмена с вашей группой.", "isIosBackgroundLocationEnabled": true, "isAndroidBackgroundLocationEnabled": true, "isAndroidForegroundServiceEnabled": true}],
       ["expo-sqlite", {"useSQLCipher": true}],
       "expo-secure-store",

@@ -1,16 +1,48 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import MapView, { Marker, Polyline } from "react-native-maps";
+import {
+  Camera,
+  GeoJSONSource,
+  Layer,
+  Map,
+  Marker,
+  type CameraRef,
+  type LngLat,
+  type LngLatBounds,
+  type StyleSpecification,
+} from "@maplibre/maplibre-react-native";
 import { api } from "../shared/api";
 import { Button, Card, Field, Notice, ui } from "../ui/components";
 import { colors as c } from "../ui/theme";
 import { MemberPosition, Point } from "./types";
-import { routeSegments } from './routeSegments';
+import { routeSegments } from "./routeSegments";
+
+const OSM_STYLE: StyleSpecification = {
+  version: 8,
+  sources: {
+    osm: {
+      type: "raster",
+      tiles: ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
+      tileSize: 256,
+      attribution: "© OpenStreetMap contributors",
+    },
+  },
+  layers: [
+    {
+      id: "osm",
+      type: "raster",
+      source: "osm",
+      minzoom: 0,
+      maxzoom: 19,
+    },
+  ],
+};
 
 function dateLocal() {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
+
 function lastSeen(value: string) {
   const minutes = Math.max(
     0,
@@ -22,6 +54,39 @@ function lastSeen(value: string) {
       ? `${minutes} мин назад`
       : new Date(value).toLocaleString("ru-RU");
 }
+
+function boundsFor(coords: [number, number][]): LngLatBounds | null {
+  if (!coords.length) return null;
+  const lngs = coords.map((pair) => pair[0]);
+  const lats = coords.map((pair) => pair[1]);
+  let west = Math.min(...lngs);
+  let south = Math.min(...lats);
+  let east = Math.max(...lngs);
+  let north = Math.max(...lats);
+  if (west === east && south === north) {
+    west -= 0.008;
+    east += 0.008;
+    south -= 0.008;
+    north += 0.008;
+  }
+  return [west, south, east, north];
+}
+
+function focusCamera(
+  camera: React.RefObject<CameraRef | null>,
+  coords: [number, number][],
+  padding: { top: number; right: number; bottom: number; left: number },
+  zoom: number,
+) {
+  const bounds = boundsFor(coords);
+  if (!bounds) return;
+  if (coords.length === 1) {
+    camera.current?.easeTo({ center: coords[0], zoom, duration: 500, padding });
+  } else {
+    camera.current?.fitBounds(bounds, { duration: 500, padding });
+  }
+}
+
 export function MapScreen({
   workspaceId,
   positions,
@@ -31,7 +96,7 @@ export function MapScreen({
   positions: MemberPosition[];
   onRefresh: () => void;
 }) {
-  const map = useRef<MapView>(null);
+  const camera = useRef<CameraRef>(null);
   const generation = useRef(0);
   const [subject, setSubject] = useState("");
   const [history, setHistory] = useState<Point[]>([]);
@@ -40,11 +105,12 @@ export function MapScreen({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [historyLoaded, setHistoryLoaded] = useState(false);
-  const selected = positions.find(p => p.user_id === subject);
-  const historyAllowed = !!selected && selected.status !== 'unavailable';
+  const selected = positions.find((p) => p.user_id === subject);
+  const historyAllowed = !!selected && selected.status !== "unavailable";
   const currentVisibility = useRef(false);
   currentVisibility.current = historyAllowed;
-  const visible = positions.filter((p) => p.location !== null && p.status !== 'unavailable');
+  const visible = positions.filter((p) => p.location !== null && p.status !== "unavailable");
+
   useEffect(() => {
     if (!historyAllowed) {
       generation.current++;
@@ -54,7 +120,9 @@ export function MapScreen({
       setBusy(false);
     }
   }, [historyAllowed]);
+
   useEffect(() => () => { generation.current++; }, []);
+
   useEffect(() => {
     generation.current++;
     setHistory([]);
@@ -63,19 +131,21 @@ export function MapScreen({
     setError("");
     setHistoryLoaded(false);
   }, [workspaceId]);
+
   useEffect(() => {
-    if (visible.length)
-      map.current?.fitToCoordinates(
-        visible.map((p) => ({
-          latitude: Number(p.location!.latitude),
-          longitude: Number(p.location!.longitude),
-        })),
-        {
-          edgePadding: { top: 55, right: 55, bottom: 55, left: 55 },
-          animated: true,
-        },
+    if (visible.length) {
+      focusCamera(
+        camera,
+        visible.map((p) => [
+          Number(p.location!.longitude),
+          Number(p.location!.latitude),
+        ]),
+        { top: 55, right: 55, bottom: 55, left: 55 },
+        10,
       );
+    }
   }, [workspaceId, positions.map((p) => p.user_id).join(",")]);
+
   function choose(id: string) {
     generation.current++;
     setSubject(id);
@@ -84,14 +154,15 @@ export function MapScreen({
     setHistoryLoaded(false);
     setError("");
     const p = positions.find((p) => p.user_id === id)?.location;
-    if (p)
-      map.current?.animateToRegion({
-        latitude: Number(p.latitude),
-        longitude: Number(p.longitude),
-        latitudeDelta: 0.012,
-        longitudeDelta: 0.012,
+    if (p) {
+      camera.current?.easeTo({
+        center: [Number(p.longitude), Number(p.latitude)],
+        zoom: 13,
+        duration: 500,
       });
+    }
   }
+
   async function loadHistory(more = false) {
     if (!subject || !historyAllowed || !/^\d{4}-\d{2}-\d{2}$/.test(day)) {
       setError("Выберите участника и дату в формате ГГГГ-ММ-ДД.");
@@ -111,17 +182,14 @@ export function MapScreen({
       setHistory(next);
       setCursor(result.next_cursor);
       setHistoryLoaded(true);
-      if (next.length)
-        map.current?.fitToCoordinates(
-          next.map((p) => ({
-            latitude: Number(p.latitude),
-            longitude: Number(p.longitude),
-          })),
-          {
-            edgePadding: { top: 45, bottom: 45, left: 45, right: 45 },
-            animated: true,
-          },
+      if (next.length) {
+        focusCamera(
+          camera,
+          next.map((p) => [Number(p.longitude), Number(p.latitude)]),
+          { top: 45, right: 45, bottom: 45, left: 45 },
+          11,
         );
+      }
     } catch (e) {
       if (request === generation.current) {
         setHistory([]);
@@ -132,30 +200,22 @@ export function MapScreen({
       if (request === generation.current) setBusy(false);
     }
   }
+
   return (
     <View style={{ gap: 17 }}>
       <View style={s.mapCard}>
-        <MapView
-          ref={map}
-          style={s.map}
-          initialRegion={{
-            latitude: 55.751244,
-            longitude: 37.618423,
-            latitudeDelta: 0.05,
-            longitudeDelta: 0.05,
-          }}
-          showsUserLocation={false}
-          showsMyLocationButton={false}
-        >
+        <Map style={s.map} mapStyle={OSM_STYLE} attribution>
+          <Camera
+            ref={camera}
+            initialViewState={{ center: [37.618423, 55.751244], zoom: 5 }}
+          />
           {visible.map((p, i) => (
             <Marker
               key={p.user_id}
-              coordinate={{
-                latitude: Number(p.location!.latitude),
-                longitude: Number(p.location!.longitude),
-              }}
-              title={p.name}
-              description={lastSeen(p.location!.captured_at)}
+              lngLat={[
+                Number(p.location!.longitude),
+                Number(p.location!.latitude),
+              ]}
               onPress={() => choose(p.user_id)}
             >
               <View
@@ -170,18 +230,34 @@ export function MapScreen({
               </View>
             </Marker>
           ))}
-          {historyAllowed && routeSegments(history).map((segment, index) => (
-            <Polyline
-              key={index}
-              coordinates={segment.map((p) => ({
-                latitude: Number(p.latitude),
-                longitude: Number(p.longitude),
-              }))}
-              strokeWidth={5}
-              strokeColor={c.purple}
+          {historyAllowed && history.length > 0 && (
+            <GeoJSONSource
+              id="history-source"
+              data={{
+                type: "FeatureCollection",
+                features: routeSegments(history).map((segment) => ({
+                  type: "Feature",
+                  properties: {},
+                  geometry: {
+                    type: "LineString",
+                    coordinates: segment.map((p) => [
+                      Number(p.longitude),
+                      Number(p.latitude),
+                    ]),
+                  },
+                })),
+              }}
             />
-          ))}
-        </MapView>
+          )}
+          {historyAllowed && history.length > 0 && (
+            <Layer
+              id="history-line"
+              type="line"
+              source="history-source"
+              paint={{ "line-color": c.purple, "line-width": 5 }}
+            />
+          )}
+        </Map>
         <View pointerEvents="none" style={s.mapBadge}>
           <Text style={{ color: c.purple, fontWeight: "600" }}>
             ●{" "}
@@ -302,6 +378,7 @@ export function MapScreen({
     </View>
   );
 }
+
 const s = StyleSheet.create({
   mapCard: {
     height: 320,
