@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -23,6 +24,7 @@ import { colors as c, useTheme } from "../ui/theme";
 import { AuthMode } from "./types";
 import { api } from "../shared/api";
 import { installationId, saveSession, type Session } from "../shared/session";
+import Ionicons from "@expo/vector-icons/Ionicons";
 
 export function AuthScreen({
   onAuthenticate,
@@ -38,11 +40,12 @@ export function AuthScreen({
   initialCode?: string;
   onBack?: () => void;
 }) {
-  const { colors: themeColors } = useTheme();
+  const { colors: themeColors, dark, toggle } = useTheme();
   const [mode, setMode] = useState<AuthMode>(initialMode);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [repeatPassword, setRepeatPassword] = useState("");
   const [code, setCode] = useState(initialCode);
   const [understood, setUnderstood] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -173,9 +176,10 @@ export function AuthScreen({
       (!name.trim() ||
         password.length < 12 ||
         !/\d/.test(password) ||
-        !/[a-zа-я]/i.test(password))
+        !/[a-zа-я]/i.test(password) ||
+        password !== repeatPassword)
     ) {
-      setError("Нужны имя и пароль от 12 символов с буквами и цифрами.");
+      setError("Нужны имя, одинаковые пароли от 12 символов с буквами и цифрами.");
       return;
     }
     setBusy(true);
@@ -216,9 +220,26 @@ export function AuthScreen({
         contentContainerStyle={[ui.content, { paddingTop: 25 }]}
         keyboardShouldPersistTaps="handled"
       >
-        {onBack && (
-          <Button tone="ghost" onPress={onBack}>← Назад</Button>
-        )}
+        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+          {onBack ? (
+            <Button tone="ghost" onPress={onBack}>← Назад</Button>
+          ) : <View />}
+          <Pressable
+            onPress={toggle}
+            accessibilityRole="button"
+            style={{
+              width: 44,
+              height: 44,
+              borderRadius: 22,
+              borderWidth: 1,
+              borderColor: themeColors.line,
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Ionicons name={dark ? "sunny-outline" : "moon-outline"} size={24} color={themeColors.ink} />
+          </Pressable>
+        </View>
         <Brand />
         <View style={s.hero}>
           <View style={s.orbitOne} />
@@ -249,7 +270,7 @@ export function AuthScreen({
               setError("");
             }}
           >
-            Зарегистрироваться
+            Регистрация
           </Chip>
           <Chip
             active={mode === "join"}
@@ -322,6 +343,15 @@ export function AuthScreen({
                     : undefined
                 }
               />
+              {mode === "register" && (
+                <Field
+                  label="Повторите пароль"
+                  value={repeatPassword}
+                  onChangeText={setRepeatPassword}
+                  secureTextEntry
+                  autoComplete="new-password"
+                />
+              )}
             </>
           )}
           {mode !== "login" && (
@@ -340,7 +370,7 @@ export function AuthScreen({
             {mode === "join"
               ? "Присоединиться по коду"
               : mode === "register"
-                ? "Зарегистрироваться"
+                ? "Регистрация"
                 : "Войти"}
           </Button>
           {mode === "login" && <Button tone="ghost" disabled={busy} onPress={() => void forgotPassword()}>Забыли пароль?</Button>}

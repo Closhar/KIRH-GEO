@@ -93,11 +93,11 @@ export function Field({
     return (
       <View style={{ gap: 7 }}>
         <Text style={s.label}>{label}</Text>
-        <View style={[s.input, { flexDirection: "row", alignItems: "center", paddingVertical: 0, backgroundColor: c.background, borderColor: c.line }]}>
+        <View style={[s.input, { flexDirection: "row", alignItems: "center", paddingVertical: 0, backgroundColor: "#FAF9FC", borderColor: c.line }]}>
           <TextInput
             placeholderTextColor="#A09AAD"
             accessibilityLabel={label}
-            style={{ flex: 1, color: c.ink, fontSize: 16, paddingVertical: 13 }}
+            style={{ flex: 1, color: "#252139", fontSize: 16, paddingVertical: 13 }}
             secureTextEntry={hidden}
             {...props}
           />
@@ -149,6 +149,7 @@ export function Check({
   onChange,
   children,
 }: PropsWithChildren<{ value: boolean; onChange: (value: boolean) => void }>) {
+  const { colors: c } = useTheme();
   return (
     <Pressable
       accessibilityRole="checkbox"
@@ -166,7 +167,7 @@ export function Check({
           {value ? "✓" : ""}
         </Text>
       </View>
-      <Text style={s.checkLabel}>{children}</Text>
+      <Text style={[s.checkLabel, { color: c.ink }]}>{children}</Text>
     </Pressable>
   );
 }
