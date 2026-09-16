@@ -1365,21 +1365,23 @@ export function HomeScreen({
             <Text
               style={[
                 s.tabIcon,
-                { color: item.id === tab ? c.purple : "#ACA6B8" },
+                { color: item.id === tab ? themeColors.purple : themeColors.muted },
               ]}
             >
               {item.icon}
             </Text>
             <Text
               style={{
-                color: item.id === tab ? c.purple : c.muted,
+                color: item.id === tab ? themeColors.purple : themeColors.muted,
                 fontSize: 11,
                 fontWeight: item.id === tab ? "700" : "500",
               }}
             >
               {item.title}
             </Text>
-            {item.id === tab && <View style={s.tabDot} />}
+            {item.id === tab && (
+              <View style={[s.tabDot, { backgroundColor: themeColors.green }]} />
+            )}
           </Pressable>
         ))}
       </View>
@@ -1389,6 +1391,7 @@ export function HomeScreen({
           style={[
             s.drawer,
             {
+              backgroundColor: themeColors.surface + (dark ? "E6" : "F2"),
               transform: [
                 {
                   translateX: menuAnim.interpolate({
@@ -1400,10 +1403,32 @@ export function HomeScreen({
             },
           ]}
         >
+          <View style={[s.drawerOrbOne, { backgroundColor: themeColors.purpleSoft }]} />
+          <View style={[s.drawerOrbTwo, { backgroundColor: themeColors.greenSoft }]} />
           <View style={ui.row}>
             <Brand compact />
             <Pressable onPress={closeMenu} accessibilityRole="button">
-              <Text style={s.drawerClose}>✕</Text>
+              <Text style={[s.drawerClose, { color: themeColors.muted }]}>✕</Text>
+            </Pressable>
+          </View>
+          <Text style={[s.drawerUser, { color: themeColors.ink }]}>{user.name}</Text>
+          <View style={ui.row}>
+            <Pressable
+              onPress={toggle}
+              accessibilityRole="button"
+              style={[s.drawerAction, { borderColor: themeColors.line }]}
+            >
+              <Text style={{ color: themeColors.ink, fontSize: 22 }}>{dark ? "☀" : "☾"}</Text>
+            </Pressable>
+            <Pressable
+              onPress={() => {
+                closeMenu();
+                void act("logout", onLogout);
+              }}
+              accessibilityRole="button"
+              style={[s.drawerAction, { borderColor: themeColors.line }]}
+            >
+              <Text style={{ color: themeColors.danger, fontSize: 22 }}>⏻</Text>
             </Pressable>
           </View>
           <View style={ui.divider} />
@@ -1420,28 +1445,6 @@ export function HomeScreen({
             </Pressable>
           ))}
           <View style={ui.divider} />
-          <Pressable
-            onPress={() => {
-              toggle();
-              closeMenu();
-            }}
-            style={s.drawerItem}
-          >
-            <Text style={s.drawerItemText}>
-              {dark ? "☀ Светлая тема" : "☾ Тёмная тема"}
-            </Text>
-          </Pressable>
-          <Pressable
-            onPress={() => {
-              closeMenu();
-              void act("logout", onLogout);
-            }}
-            style={s.drawerItem}
-          >
-            <Text style={[s.drawerItemText, { color: c.danger }]}>
-              Выйти из аккаунта
-            </Text>
-          </Pressable>
         </Animated.View>
       </Modal>
     </View>
@@ -1492,6 +1495,34 @@ const s = StyleSheet.create({
     borderBottomLeftRadius: 28,
   },
   drawerClose: { color: c.muted, fontSize: 22, fontWeight: "700" },
+  drawerUser: { fontSize: 18, fontWeight: "800", marginTop: 6 },
+  drawerAction: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "transparent",
+  },
+  drawerOrbOne: {
+    position: "absolute",
+    width: 150,
+    height: 150,
+    borderRadius: 75,
+    top: -60,
+    right: -50,
+    opacity: 0.25,
+  },
+  drawerOrbTwo: {
+    position: "absolute",
+    width: 110,
+    height: 110,
+    borderRadius: 55,
+    bottom: 30,
+    left: -35,
+    opacity: 0.18,
+  },
   drawerItem: {
     paddingVertical: 15,
     paddingHorizontal: 8,

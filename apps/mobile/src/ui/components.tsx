@@ -10,7 +10,7 @@ import {
   View,
   ViewStyle,
 } from "react-native";
-import { colors as c } from "./theme";
+import { colors as c, useTheme } from "./theme";
 
 export function Brand({ compact = false }: { compact?: boolean }) {
   return (
@@ -103,10 +103,15 @@ export function Title({
   children,
   subtitle,
 }: PropsWithChildren<{ subtitle?: string }>) {
+  const { colors: c } = useTheme();
   return (
     <View style={{ gap: 6 }}>
-      <Text style={s.title}>{children}</Text>
-      {subtitle && <Text style={s.subtitle}>{subtitle}</Text>}
+      <Text style={{ fontSize: 30, lineHeight: 37, letterSpacing: -0.8, fontWeight: "800", color: c.ink }}>
+        {children}
+      </Text>
+      {subtitle && (
+        <Text style={{ fontSize: 15, lineHeight: 23, color: c.muted }}>{subtitle}</Text>
+      )}
     </View>
   );
 }
