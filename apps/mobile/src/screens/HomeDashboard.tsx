@@ -179,43 +179,26 @@ export function HomeDashboard({
         </Card>
       )}
 
-      <View style={[ui.row, { gap: 14 }]}>
-        <Card style={{ flex: 1, alignItems: "center", backgroundColor: c.surface }}>
-          <Text style={ui.heading}>Компас</Text>
-          <View style={compass(c).outer}>
-            {compassLabels.map((item) => (
-              <Text key={item.label} style={[compass(c).direction, item.position]}>
-                {item.label}
-              </Text>
-            ))}
-            <Animated.View
-              style={[
-                compass(c).needleWrap,
-                { transform: [{ rotate: compassRotation.interpolate({ inputRange: [-360, 360], outputRange: ["-360deg", "360deg"] }) }] },
-              ]}
-            >
-              <View style={compass(c).needleNorth} />
-              <View style={compass(c).needleSouth} />
-            </Animated.View>
-          </View>
-          <Text style={ui.muted}>{Math.round(heading)}°</Text>
-        </Card>
-        <Card style={{ flex: 1, backgroundColor: c.surface }}>
-          <Text style={ui.heading}>Рядом</Text>
-          {visible.length ? (
-            <Text style={ui.text}>
-              {visible.length} человек{visible.length === 1 ? "" : "а"} на карте
-            </Text>
-          ) : (
-            <Text style={ui.muted}>Координат пока нет.</Text>
-          )}
-          {distances.slice(0, 3).map((item) => (
-            <Text key={item.id} style={ui.muted}>
-              {item.name} · {formatDistance(item.meters)}
+      <Card style={{ alignItems: "center", backgroundColor: c.surface }}>
+        <Text style={ui.heading}>Компас</Text>
+        <View style={compass(c).outer}>
+          {compassLabels.map((item) => (
+            <Text key={item.label} style={[compass(c).direction, item.position]}>
+              {item.label}
             </Text>
           ))}
-        </Card>
-      </View>
+          <Animated.View
+            style={[
+              compass(c).needleWrap,
+              { transform: [{ rotate: compassRotation.interpolate({ inputRange: [-360, 360], outputRange: ["-360deg", "360deg"] }) }] },
+            ]}
+          >
+            <View style={compass(c).needleNorth} />
+            <View style={compass(c).needleSouth} />
+          </Animated.View>
+        </View>
+        <Text style={ui.muted}>{Math.round(heading)}°</Text>
+      </Card>
 
       {workspaceId ? (
         <MapScreen workspaceId={workspaceId} positions={positions} onRefresh={onRefresh} />

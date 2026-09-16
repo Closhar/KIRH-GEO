@@ -11,6 +11,7 @@ import {
   ViewStyle,
 } from "react-native";
 import { colors as c, useTheme } from "./theme";
+import Ionicons from "@expo/vector-icons/Ionicons";
 
 export function Brand({ compact = false }: { compact?: boolean }) {
   const { colors: c } = useTheme();
@@ -92,7 +93,7 @@ export function Field({
     return (
       <View style={{ gap: 7 }}>
         <Text style={s.label}>{label}</Text>
-        <View style={[s.input, { flexDirection: "row", alignItems: "center", paddingVertical: 0 }]}>
+        <View style={[s.input, { flexDirection: "row", alignItems: "center", paddingVertical: 0, backgroundColor: c.background, borderColor: c.line }]}>
           <TextInput
             placeholderTextColor="#A09AAD"
             accessibilityLabel={label}
@@ -100,8 +101,8 @@ export function Field({
             secureTextEntry={hidden}
             {...props}
           />
-          <Pressable onPress={() => setHidden(!hidden)} accessibilityRole="button">
-            <Text style={{ color: c.muted, paddingHorizontal: 12 }}>{hidden ? "◉" : "○"}</Text>
+          <Pressable onPress={() => setHidden(!hidden)} accessibilityRole="button" style={{ paddingHorizontal: 12 }}>
+            <Ionicons name={hidden ? "eye-outline" : "eye-off-outline"} size={22} color={c.muted} />
           </Pressable>
         </View>
         {hint && <Text style={s.hint}>{hint}</Text>}
