@@ -1435,7 +1435,7 @@ export function HomeScreen({
                 accessibilityRole="button"
                 style={[s.drawerAction, { borderColor: themeColors.line }]}
               >
-                <Text style={{ color: themeColors.ink, fontSize: 30, lineHeight: 32 }}>{dark ? "◐" : "◑"}</Text>
+                <Text style={{ color: themeColors.ink, fontSize: 22, lineHeight: 24, textAlign: "center" }}>{dark ? "◐" : "◑"}</Text>
               </Pressable>
               <Pressable
                 onPress={() => {
@@ -1445,7 +1445,7 @@ export function HomeScreen({
                 accessibilityRole="button"
                 style={[s.drawerAction, { borderColor: themeColors.line }]}
               >
-                <Text style={{ color: themeColors.danger, fontSize: 30, lineHeight: 32 }}>→</Text>
+                <Text style={{ color: themeColors.danger, fontSize: 22, lineHeight: 24, textAlign: "center" }}>↩</Text>
               </Pressable>
             </View>
           </View>
@@ -1459,10 +1459,12 @@ export function HomeScreen({
               }}
               style={s.drawerItem}
             >
-              <Text style={[s.drawerItemText, { color: themeColors.ink }]}>
-                <Text style={{ color: themeColors.purple, marginRight: 18, fontSize: 26 }}>{item.icon}</Text>
-                {item.title}
-              </Text>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+                <Text style={{ color: themeColors.purple, fontSize: 22, width: 24, textAlign: "center" }}>
+                  {item.icon}
+                </Text>
+                <Text style={[s.drawerItemText, { color: themeColors.ink }]}>{item.title}</Text>
+              </View>
             </Pressable>
           ))}
           <View style={ui.divider} />
@@ -1519,9 +1521,9 @@ const s = StyleSheet.create({
   drawerBrand: { fontSize: 19, fontWeight: "800", letterSpacing: 1.4 },
   drawerUser: { fontSize: 16, fontWeight: "800" },
   drawerAction: {
-    width: 54,
-    height: 54,
-    borderRadius: 27,
+    width: 46,
+    height: 46,
+    borderRadius: 23,
     borderWidth: 1,
     alignItems: "center",
     justifyContent: "center",
