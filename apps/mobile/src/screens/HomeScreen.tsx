@@ -15,6 +15,7 @@ import {
   Share,
   StyleSheet,
   Text,
+  Vibration,
   View,
 } from "react-native";
 import * as Crypto from "expo-crypto";
@@ -1431,21 +1432,25 @@ export function HomeScreen({
             </View>
             <View style={ui.row}>
               <Pressable
-                onPress={toggle}
+                onPress={() => {
+                  Vibration.vibrate(8);
+                  toggle();
+                }}
                 accessibilityRole="button"
-                style={[s.drawerAction, { borderColor: themeColors.line }]}
+                style={[s.drawerAction, { borderColor: themeColors.purple }]}
               >
-                <Text style={{ color: themeColors.ink, fontSize: 42, lineHeight: 42, textAlign: "center", includeFontPadding: false }}>{dark ? "◐" : "◑"}</Text>
+                <Text style={{ color: themeColors.ink, fontSize: 44, lineHeight: 44, textAlign: "center", includeFontPadding: false }}>{dark ? "◐" : "◑"}</Text>
               </Pressable>
               <Pressable
                 onPress={() => {
+                  Vibration.vibrate(8);
                   closeMenu();
                   void act("logout", onLogout);
                 }}
                 accessibilityRole="button"
-                style={[s.drawerAction, { borderColor: themeColors.line }]}
+                style={[s.drawerAction, { borderColor: themeColors.danger }]}
               >
-                <Text style={{ color: themeColors.danger, fontSize: 42, lineHeight: 42, textAlign: "center", includeFontPadding: false }}>↩</Text>
+                <Text style={{ color: themeColors.danger, fontSize: 44, lineHeight: 44, textAlign: "center", includeFontPadding: false }}>↩</Text>
               </Pressable>
             </View>
           </View>
@@ -1454,6 +1459,7 @@ export function HomeScreen({
             <Pressable
               key={item.id}
               onPress={() => {
+                Vibration.vibrate(8);
                 setTab(item.id);
                 closeMenu();
               }}
@@ -1521,14 +1527,19 @@ const s = StyleSheet.create({
   drawerBrand: { fontSize: 19, fontWeight: "800", letterSpacing: 1.4 },
   drawerUser: { fontSize: 16, fontWeight: "800" },
   drawerAction: {
-    width: 48,
-    height: 48,
-    borderRadius: 10,
-    borderWidth: 1,
+    width: 52,
+    height: 52,
+    borderRadius: 12,
+    borderWidth: 1.5,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "transparent",
     padding: 0,
+    shadowColor: "#000",
+    shadowOpacity: 0.18,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 3,
   },
   drawerOrbOne: {
     position: "absolute",
