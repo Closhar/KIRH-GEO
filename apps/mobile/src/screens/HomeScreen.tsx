@@ -1439,7 +1439,7 @@ export function HomeScreen({
                 accessibilityRole="button"
                 style={[s.drawerAction, { borderColor: themeColors.purple }]}
               >
-                <Text style={{ color: themeColors.ink, fontSize: 44, lineHeight: 44, textAlign: "center", includeFontPadding: false }}>{dark ? "◐" : "◑"}</Text>
+                <Text style={{ color: themeColors.ink, fontSize: 48, lineHeight: 48, textAlign: "center", textAlignVertical: "center", includeFontPadding: false, padding: 0, margin: 0 }}>{dark ? "◐" : "◑"}</Text>
               </Pressable>
               <Pressable
                 onPress={() => {
@@ -1450,7 +1450,7 @@ export function HomeScreen({
                 accessibilityRole="button"
                 style={[s.drawerAction, { borderColor: themeColors.danger }]}
               >
-                <Text style={{ color: themeColors.danger, fontSize: 44, lineHeight: 44, textAlign: "center", includeFontPadding: false }}>↩</Text>
+                <Text style={{ color: themeColors.danger, fontSize: 48, lineHeight: 48, textAlign: "center", textAlignVertical: "center", includeFontPadding: false, padding: 0, margin: 0 }}>↩</Text>
               </Pressable>
             </View>
           </View>
