@@ -32,6 +32,7 @@ function Root() {
   const [showAuth, setShowAuth] = useState(false);
   const [authMode, setAuthMode] = useState<AuthMode>("login");
   const [joinCode, setJoinCode] = useState("");
+  const [pendingInviteCode, setPendingInviteCode] = useState("");
 
   async function loadSession() {
     setLoading(true);
@@ -83,8 +84,8 @@ function Root() {
     const handleUrl = (url: string) => {
       const code = parseInviteCode(url);
       if (code) {
-        setJoinCode(code);
-        setAuthMode("join");
+        setPendingInviteCode(code);
+        setAuthMode("register");
         setShowAuth(true);
       }
     };
@@ -99,17 +100,28 @@ function Root() {
     void loadSession();
   }, []);
 
+  useEffect(() => {
+    if (!session?.user || !pendingInviteCode) return;
+    void api("invitations/accept", "POST", { code: pendingInviteCode })
+      .then(() => setPendingInviteCode(""))
+      .catch(() => {});
+  }, [session?.user, pendingInviteCode]);
+
   async function authenticate(mode: AuthMode, fields: Record<string, string>) {
-    const result = await api<Session>(
-      mode === "join" ? "invitations/join" : `auth/${mode}`,
-      "POST",
-      {
-        ...fields,
-        installation_id: await installationId(),
-        platform: Platform.OS === "ios" ? "ios" : "android",
-      },
-    );
+    const result = await api<Session>(`auth/${mode}`, "POST", {
+      ...fields,
+      installation_id: await installationId(),
+      platform: Platform.OS === "ios" ? "ios" : "android",
+    });
     await saveSession(result);
+    if (pendingInviteCode) {
+      try {
+        await api("invitations/accept", "POST", { code: pendingInviteCode });
+      } catch {
+        // The account can still continue; code can be entered later in Settings.
+      }
+      setPendingInviteCode("");
+    }
     setJoinCode("");
     setShowAuth(false);
     setSession(result);

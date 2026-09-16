@@ -160,14 +160,7 @@ export function AuthScreen({
   }
   async function submit() {
     setError("");
-    if (
-      mode === "join" &&
-      (!name.trim() || code.replace(/\s/g, "").length !== 10)
-    ) {
-      setError("Укажите имя и 10 символов кода приглашения.");
-      return;
-    }
-    if (mode !== "join" && (!email.includes("@") || !password)) {
+    if (!email.includes("@") || !password) {
       setError("Введите адрес почты и пароль.");
       return;
     }
@@ -191,15 +184,7 @@ export function AuthScreen({
           password,
         });
       } else {
-        await onAuthenticate(
-          mode,
-          mode === "join"
-            ? { name: name.trim(), code: code.replace(/\s/g, "").toUpperCase() }
-            : {
-                email: email.trim(),
-                password,
-              },
-        );
+        await onAuthenticate(mode, { email: email.trim(), password });
       }
     } catch (e) {
       setError(
@@ -272,23 +257,10 @@ export function AuthScreen({
           >
             Регистрация
           </Chip>
-          <Chip
-            active={mode === "join"}
-            onPress={() => {
-              setMode("join");
-              setError("");
-            }}
-          >
-            Есть код
-          </Chip>
         </View>
         <Card style={{ backgroundColor: themeColors.surface, borderColor: themeColors.line }}>
           <Text style={{ fontSize: 19, fontWeight: "700", color: themeColors.ink }}>
-            {mode === "join"
-              ? "Вас пригласили"
-              : mode === "register"
-                ? "Начнём с аккаунта"
-                : "Рады видеть вас снова"}
+            {mode === "register" ? "Начнём с аккаунта" : "Рады видеть вас снова"}
           </Text>
           {verificationStep === "register" && (
           <>
@@ -301,25 +273,7 @@ export function AuthScreen({
               autoComplete="name"
             />
           )}
-          {mode === "join" ? (
-            <>
-              <Field
-                label="Код приглашения"
-                value={code}
-                onChangeText={setCode}
-                placeholder="10 символов"
-                maxLength={12}
-                autoCapitalize="characters"
-                autoCorrect={false}
-              />
-              <Text style={ui.muted}>
-                Вход по коду создаст отдельный аккаунт на этом телефоне. Код
-                действует 15 минут. После входа вы увидите группу и отдельно
-                выберете получателей координат.
-              </Text>
-            </>
-          ) : (
-            <>
+          <>
               <Field
                 label="Электронная почта"
                 value={email}
@@ -352,8 +306,7 @@ export function AuthScreen({
                   autoComplete="new-password"
                 />
               )}
-            </>
-          )}
+          </>
           {mode !== "login" && (
             <Check value={understood} onChange={setUnderstood}>
               Я понимаю: присоединение к группе не включает GPS. Передача
@@ -367,11 +320,7 @@ export function AuthScreen({
             busy={busy}
             disabled={mode !== "login" && !understood}
           >
-            {mode === "join"
-              ? "Присоединиться по коду"
-              : mode === "register"
-                ? "Регистрация"
-                : "Войти"}
+            {mode === "register" ? "Регистрация" : "Войти"}
           </Button>
           {mode === "login" && <Button tone="ghost" disabled={busy} onPress={() => void forgotPassword()}>Забыли пароль?</Button>}
           </>
