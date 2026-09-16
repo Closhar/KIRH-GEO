@@ -1412,7 +1412,7 @@ export function HomeScreen({
             <View style={[s.drawerRing, { borderColor: themeColors.green }]} />
           </View>
           <View style={[ui.row, { marginTop: 18, justifyContent: "space-between" }]}>
-            <View style={ui.row}>
+            <View style={{ flexDirection: "row", gap: 6 }}>
               <Image
                 source={require("../../assets/kt-geo-logo.png")}
                 style={{ width: 42, height: 42 }}
@@ -1521,9 +1521,9 @@ const s = StyleSheet.create({
   drawerBrand: { fontSize: 19, fontWeight: "800", letterSpacing: 1.4 },
   drawerUser: { fontSize: 16, fontWeight: "800" },
   drawerAction: {
-    width: 58,
-    height: 58,
-    borderRadius: 12,
+    width: 48,
+    height: 48,
+    borderRadius: 10,
     borderWidth: 1,
     alignItems: "center",
     justifyContent: "center",
