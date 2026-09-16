@@ -32,6 +32,6 @@ final class SendIdentityAction implements ShouldBeEncrypted, ShouldQueue
             return;
         }
         $url = rtrim(config('identity.action_url'), '#').'#action='.$action->purpose.'&token='.$this->token;
-        Mail::to($action->email)->send(new IdentityActionMail($url, $action->purpose));
+        Mail::to($action->email)->send(new IdentityActionMail($url, $action->purpose, $this->token));
     }
 }

@@ -48,7 +48,7 @@ final class IdentityRecovery
             }
             DB::table('identity_action_tokens')->where('user_id', $user->id)->where('purpose', $purpose)->whereNull('used_at')->update(['used_at' => now()]);
             $id = (string) Str::uuid();
-            $token = bin2hex(random_bytes(32));
+            $token = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
             $ttl = config('identity.'.($purpose === 'reset_password' ? 'reset_ttl_minutes' : 'verify_ttl_minutes'));
             DB::table('identity_action_tokens')->insert(['id' => $id, 'user_id' => $user->id, 'purpose' => $purpose,
                 'token_hash' => hash('sha256', $token), 'email_hash' => hash('sha256', $email), 'expires_at' => now()->addMinutes($ttl)]);

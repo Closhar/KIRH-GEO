@@ -21,13 +21,13 @@ Route::middleware('throttle:5,1')->group(function (): void {
         return ApiResponse::data(['accepted' => true, 'message' => 'Если адрес зарегистрирован, инструкция будет отправлена.'], 202);
     });
     Route::post('auth/reset-password', function (Request $request, IdentityRecovery $service) {
-        $data = $request->validate(['token' => 'required|string|size:64', 'password' => ['required', 'string', 'max:1024', 'confirmed', Password::min(12)->letters()->numbers()]]);
+        $data = $request->validate(['token' => 'required|string|size:6', 'password' => ['required', 'string', 'max:1024', 'confirmed', Password::min(12)->letters()->numbers()]]);
         $service->consume($data['token'], 'reset_password', $data['password']);
 
         return ApiResponse::data(['reset' => true, 'login_required' => true, 'new_consent_required' => true]);
     });
     Route::post('auth/email/verify', function (Request $request, IdentityRecovery $service) {
-        $data = $request->validate(['token' => 'required|string|size:64']);
+        $data = $request->validate(['token' => 'required|string|size:6']);
         $service->consume($data['token'], 'verify_email');
 
         return ApiResponse::data(['verified' => true]);

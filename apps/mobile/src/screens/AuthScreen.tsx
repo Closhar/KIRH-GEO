@@ -1,10 +1,11 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from "react-native";
 import {
@@ -21,6 +22,7 @@ import {
 import { colors as c, useTheme } from "../ui/theme";
 import { AuthMode } from "./types";
 import { api } from "../shared/api";
+import { installationId, saveSession, type Session } from "../shared/session";
 
 export function AuthScreen({
   onAuthenticate,
@@ -46,13 +48,112 @@ export function AuthScreen({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const [verificationStep, setVerificationStep] = useState<"register" | "code" | "reset">("register");
+  const [pendingEmail, setPendingEmail] = useState("");
+  const [pendingPassword, setPendingPassword] = useState("");
+  const [pendingName, setPendingName] = useState("");
+  const [codeDigits, setCodeDigits] = useState<string[]>(Array(6).fill(""));
+  const [resetPassword, setResetPassword] = useState("");
+  const [resendIn, setResendIn] = useState(0);
   async function forgotPassword() {
     setError(""); setNotice("");
     if (!email.includes("@")) {setError("Введите адрес почты."); return;}
     setBusy(true);
-    try {await api("auth/forgot-password", "POST", {email: email.trim()}); setNotice("Если аккаунт существует, письмо со ссылкой отправлено.");}
+    try {
+      await api("auth/forgot-password", "POST", {email: email.trim()});
+      setPendingEmail(email.trim());
+      setVerificationStep("reset");
+      setCodeDigits(Array(6).fill(""));
+      setResetPassword("");
+      startResendTimer();
+      setNotice("Код отправлен, если аккаунт существует.");
+    }
     catch (e) {setError(e instanceof Error ? e.message : "Восстановление пока недоступно.");}
     finally {setBusy(false);}
+  }
+  function startResendTimer() {
+    setResendIn(120);
+  }
+  useEffect(() => {
+    if (resendIn <= 0) return;
+    const timer = setTimeout(() => setResendIn((value) => Math.max(0, value - 1)), 1000);
+    return () => clearTimeout(timer);
+  }, [resendIn]);
+  async function sendRegistrationCode(fields: { name: string; email: string; password: string }) {
+    const result = await api<Session>("auth/register", "POST", {
+      ...fields,
+      installation_id: await installationId(),
+      platform: Platform.OS === "ios" ? "ios" : "android",
+    });
+    await saveSession(result);
+    await api("auth/email/verification", "POST");
+    setPendingName(fields.name);
+    setPendingEmail(fields.email);
+    setPendingPassword(fields.password);
+    setVerificationStep("code");
+    startResendTimer();
+  }
+  function updateCodeDigit(index: number, value: string) {
+    setCodeDigits((current) => {
+      const next = [...current];
+      next[index] = value.replace(/\D/g, "").slice(-1);
+      return next;
+    });
+  }
+  async function submitVerificationCode() {
+    const token = codeDigits.join("");
+    if (token.length !== 6) {
+      setError("Введите код из 6 цифр.");
+      return;
+    }
+    setBusy(true);
+    setError("");
+    try {
+      await api("auth/email/verify", "POST", { token });
+      await onAuthenticate("login", { email: pendingEmail, password: pendingPassword });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Не удалось подтвердить код.");
+    } finally {
+      setBusy(false);
+    }
+  }
+  async function resendVerificationCode() {
+    setBusy(true);
+    setError("");
+    try {
+      await api("auth/email/verification", "POST");
+      startResendTimer();
+      setNotice("Новый код отправлен.");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Не удалось отправить код.");
+    } finally {
+      setBusy(false);
+    }
+  }
+  async function submitResetCode() {
+    const token = codeDigits.join("");
+    if (token.length !== 6 || resetPassword.length < 12 || !/\d/.test(resetPassword) || !/[a-zа-я]/i.test(resetPassword)) {
+      setError("Введите код и новый пароль от 12 символов с буквами и цифрами.");
+      return;
+    }
+    setBusy(true);
+    setError("");
+    try {
+      await api("auth/reset-password", "POST", {
+        token,
+        password: resetPassword,
+        password_confirmation: resetPassword,
+      });
+      setNotice("Пароль восстановлен. Войдите с новым паролем.");
+      setVerificationStep("register");
+      setCodeDigits(Array(6).fill(""));
+      setResetPassword("");
+      setMode("login");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Не удалось восстановить пароль.");
+    } finally {
+      setBusy(false);
+    }
   }
   async function submit() {
     setError("");
@@ -79,16 +180,23 @@ export function AuthScreen({
     }
     setBusy(true);
     try {
-      await onAuthenticate(
-        mode,
-        mode === "join"
-          ? { name: name.trim(), code: code.replace(/\s/g, "").toUpperCase() }
-          : {
-              email: email.trim(),
-              password,
-              ...(mode === "register" ? { name: name.trim() } : {}),
-            },
-      );
+      if (mode === "register") {
+        await sendRegistrationCode({
+          name: name.trim(),
+          email: email.trim(),
+          password,
+        });
+      } else {
+        await onAuthenticate(
+          mode,
+          mode === "join"
+            ? { name: name.trim(), code: code.replace(/\s/g, "").toUpperCase() }
+            : {
+                email: email.trim(),
+                password,
+              },
+        );
+      }
     } catch (e) {
       setError(
         e instanceof Error
@@ -161,6 +269,8 @@ export function AuthScreen({
                 ? "Начнём с аккаунта"
                 : "Рады видеть вас снова"}
           </Text>
+          {verificationStep === "register" && (
+          <>
           {mode !== "login" && (
             <Field
               label="Как вас зовут"
@@ -234,6 +344,100 @@ export function AuthScreen({
                 : "Войти"}
           </Button>
           {mode === "login" && <Button tone="ghost" disabled={busy} onPress={() => void forgotPassword()}>Забыли пароль?</Button>}
+          </>
+          )}
+          {verificationStep === "code" && (
+            <>
+              <Text style={{ color: themeColors.muted, lineHeight: 21 }}>
+                На адрес {pendingEmail} отправлен проверочный код.
+              </Text>
+              <View style={{ flexDirection: "row", gap: 8 }}>
+                {codeDigits.map((digit, index) => (
+                  <TextInput
+                    key={index}
+                    value={digit}
+                    onChangeText={(value) => updateCodeDigit(index, value)}
+                    keyboardType="number-pad"
+                    maxLength={1}
+                    style={{
+                      flex: 1,
+                      minHeight: 54,
+                      borderWidth: 1,
+                      borderColor: themeColors.line,
+                      borderRadius: 14,
+                      color: themeColors.ink,
+                      backgroundColor: themeColors.background,
+                      textAlign: "center",
+                      fontSize: 22,
+                      fontWeight: "800",
+                    }}
+                  />
+                ))}
+              </View>
+              <Button onPress={submitVerificationCode} busy={busy}>
+                Подтвердить код
+              </Button>
+              {resendIn > 0 ? (
+                <Text style={{ color: themeColors.muted, textAlign: "center" }}>
+                  Повторная отправка через {Math.floor(resendIn / 60)}:
+                  {String(resendIn % 60).padStart(2, "0")}
+                </Text>
+              ) : (
+                <Button tone="ghost" onPress={resendVerificationCode} busy={busy}>
+                  Отправить код ещё раз
+                </Button>
+              )}
+            </>
+          )}
+          {verificationStep === "reset" && (
+            <>
+              <Text style={{ color: themeColors.muted, lineHeight: 21 }}>
+                Введите код с почты и новый пароль.
+              </Text>
+              <View style={{ flexDirection: "row", gap: 8 }}>
+                {codeDigits.map((digit, index) => (
+                  <TextInput
+                    key={index}
+                    value={digit}
+                    onChangeText={(value) => updateCodeDigit(index, value)}
+                    keyboardType="number-pad"
+                    maxLength={1}
+                    style={{
+                      flex: 1,
+                      minHeight: 54,
+                      borderWidth: 1,
+                      borderColor: themeColors.line,
+                      borderRadius: 14,
+                      color: themeColors.ink,
+                      backgroundColor: themeColors.background,
+                      textAlign: "center",
+                      fontSize: 22,
+                      fontWeight: "800",
+                    }}
+                  />
+                ))}
+              </View>
+              <Field
+                label="Новый пароль"
+                value={resetPassword}
+                onChangeText={setResetPassword}
+                secureTextEntry
+              />
+              <Button onPress={submitResetCode} busy={busy}>
+                Восстановить пароль
+              </Button>
+              {resendIn > 0 ? (
+                <Text style={{ color: themeColors.muted, textAlign: "center" }}>
+                  Повторная отправка через {Math.floor(resendIn / 60)}:
+                  {String(resendIn % 60).padStart(2, "0")}
+                </Text>
+              ) : (
+                <Button tone="ghost" onPress={forgotPassword} busy={busy}>
+                  Отправить код ещё раз
+                </Button>
+              )}
+            </>
+          )}
         </Card>
         <View style={s.footer}>
           <Text style={s.shield}>◇</Text>
