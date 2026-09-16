@@ -8,7 +8,8 @@ const displayTime = (value: string) => new Intl.DateTimeFormat('ru-RU', { dateSt
 export function App({ session }: { session: ShareSession }) {
   const state = useSyncExternalStore(session.subscribe, session.getState);
   const [passcode, setPasscode] = useState('');
-  const styleUrl = import.meta.env.VITE_MAP_STYLE_URL as string | undefined;
+  const configuredStyle = import.meta.env.VITE_MAP_STYLE_URL as string | undefined;
+  const styleUrl = configuredStyle && configuredStyle.trim() ? configuredStyle : '/maps/style.json';
   const active = state.status === 'active' || state.status === 'offline';
   const point = state.point;
   const stale = point && Date.now() - Date.parse(point.captured_at) > 180000;
