@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
-FROM php:8.3-fpm-alpine AS runtime
-RUN apk add --no-cache libpq icu-libs libzip libfcgi \
+FROM php:8.3-fpm-alpine3.21 AS runtime
+RUN apk add --no-cache libpq icu-libs libzip fcgi \
     && apk add --no-cache --virtual .build-deps $PHPIZE_DEPS postgresql-dev icu-dev libzip-dev \
     && docker-php-ext-install pdo_pgsql intl zip bcmath pcntl opcache \
     && apk del .build-deps
@@ -16,9 +16,9 @@ RUN --mount=type=cache,target=/root/.composer/cache composer install --no-dev --
 
 FROM deps AS builder
 COPY apps/api/ ./
-RUN composer dump-autoload --no-dev --classmap-authoritative \
-    && php artisan filament:assets \
-    && mkdir -p storage/framework/cache/data storage/framework/sessions storage/framework/views storage/logs bootstrap/cache
+RUN mkdir -p storage/framework/cache/data storage/framework/sessions storage/framework/views storage/logs bootstrap/cache \
+    && composer dump-autoload --no-dev --classmap-authoritative \
+    && php artisan filament:assets
 
 FROM runtime AS development
 COPY infra/docker/php-development.ini /usr/local/etc/php/conf.d/zzz-development.ini

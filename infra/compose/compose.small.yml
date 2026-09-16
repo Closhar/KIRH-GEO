@@ -1,0 +1,32 @@
+# Resource profile for the current 1 vCPU / 3 GB pilot host.
+# Use after compose.production.yml so these limits win.
+services:
+  api:
+    mem_limit: 256m
+    cpus: 0.5
+  worker:
+    mem_limit: 256m
+    cpus: 0.5
+  scheduler:
+    mem_limit: 128m
+    cpus: 0.25
+  reverb:
+    mem_limit: 128m
+    cpus: 0.25
+    environment:
+      REVERB_HOST: geo.kirhtarg.ru
+      REVERB_PORT: 443
+      REVERB_SCHEME: https
+  proxy:
+    mem_limit: 64m
+    cpus: 0.25
+  share:
+    mem_limit: 32m
+    cpus: 0.25
+  postgres:
+    mem_limit: 768m
+    cpus: 1.0
+    shm_size: 128m
+  redis:
+    mem_limit: 128m
+    cpus: 0.25
