@@ -141,7 +141,7 @@ export function AuthScreen({
               setError("");
             }}
           >
-            Создать группу
+            Зарегистрироваться
           </Chip>
           <Chip
             active={mode === "join"}
@@ -153,8 +153,8 @@ export function AuthScreen({
             Есть код
           </Chip>
         </View>
-        <Card>
-          <Text style={ui.heading}>
+        <Card style={{ backgroundColor: themeColors.surface, borderColor: themeColors.line }}>
+          <Text style={{ fontSize: 19, fontWeight: "700", color: themeColors.ink }}>
             {mode === "join"
               ? "Вас пригласили"
               : mode === "register"
@@ -230,7 +230,7 @@ export function AuthScreen({
             {mode === "join"
               ? "Присоединиться по коду"
               : mode === "register"
-                ? "Создать аккаунт"
+                ? "Зарегистрироваться"
                 : "Войти"}
           </Button>
           {mode === "login" && <Button tone="ghost" disabled={busy} onPress={() => void forgotPassword()}>Забыли пароль?</Button>}

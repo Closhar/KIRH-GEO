@@ -13,6 +13,7 @@ import {
 import { colors as c, useTheme } from "./theme";
 
 export function Brand({ compact = false }: { compact?: boolean }) {
+  const { colors: c } = useTheme();
   return (
     <View style={s.brand}>
       <Image
@@ -22,8 +23,12 @@ export function Brand({ compact = false }: { compact?: boolean }) {
         accessibilityLabel="KIRH GEO"
       />
       <View>
-        <Text style={s.brandName}>KIRH GEO</Text>
-        <Text style={s.brandCaption}>Ближе, где бы вы ни были</Text>
+        <Text style={{ color: c.purple, fontWeight: "800", fontSize: 19, letterSpacing: 1.5 }}>
+          KIRH GEO
+        </Text>
+        <Text style={{ color: c.muted, fontSize: 10, marginTop: 3 }}>
+          Ближе, где бы вы ни были
+        </Text>
       </View>
     </View>
   );
@@ -78,8 +83,31 @@ export function Button({
 export function Field({
   label,
   hint,
+  secureTextEntry,
   ...props
 }: TextInputProps & { label: string; hint?: string }) {
+  const { colors: c } = useTheme();
+  const [hidden, setHidden] = React.useState(true);
+  if (secureTextEntry) {
+    return (
+      <View style={{ gap: 7 }}>
+        <Text style={s.label}>{label}</Text>
+        <View style={[s.input, { flexDirection: "row", alignItems: "center", paddingVertical: 0 }]}>
+          <TextInput
+            placeholderTextColor="#A09AAD"
+            accessibilityLabel={label}
+            style={{ flex: 1, color: c.ink, fontSize: 16, paddingVertical: 13 }}
+            secureTextEntry={hidden}
+            {...props}
+          />
+          <Pressable onPress={() => setHidden(!hidden)} accessibilityRole="button">
+            <Text style={{ color: c.muted, paddingHorizontal: 12 }}>{hidden ? "◉" : "○"}</Text>
+          </Pressable>
+        </View>
+        {hint && <Text style={s.hint}>{hint}</Text>}
+      </View>
+    );
+  }
   return (
     <View style={{ gap: 7 }}>
       <Text style={s.label}>{label}</Text>

@@ -5,6 +5,7 @@ import {
   Animated,
   AppState,
   Dimensions,
+  Image,
   Linking,
   Modal,
   Platform,
@@ -1410,7 +1411,12 @@ export function HomeScreen({
             <Text style={[s.drawerPatternIcon, { color: themeColors.purple }]}>◎</Text>
             <View style={[s.drawerRing, { borderColor: themeColors.green }]} />
           </View>
-          <View style={ui.row}>
+          <View style={[ui.row, { marginTop: 18 }]}>
+            <Image
+              source={require("../../assets/kt-geo-logo.png")}
+              style={{ width: 42, height: 42 }}
+              resizeMode="contain"
+            />
             <Text style={[s.drawerBrand, { color: themeColors.purple }]}>KIRH GEO</Text>
             <Pressable onPress={closeMenu} accessibilityRole="button">
               <Text style={[s.drawerClose, { color: themeColors.muted }]}>✕</Text>
@@ -1451,7 +1457,10 @@ export function HomeScreen({
               }}
               style={s.drawerItem}
             >
-              <Text style={[s.drawerItemText, { color: themeColors.ink }]}>{item.title}</Text>
+              <Text style={[s.drawerItemText, { color: themeColors.ink }]}>
+                <Text style={{ color: themeColors.purple, marginRight: 10 }}>{item.icon}</Text>
+                {item.title}
+              </Text>
             </Pressable>
           ))}
           <View style={ui.divider} />
