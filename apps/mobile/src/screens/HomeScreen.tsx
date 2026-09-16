@@ -543,54 +543,14 @@ export function HomeScreen({
             <Text style={ui.muted}>Выполняем…</Text>
           </View>
         ) : null}
-        {!workspaceId && tab === "home" && (
-          <>
-            <Card>
-              <Text style={ui.heading}>Начните со своей группы</Text>
-              <Field
-                label="Название пространства"
-                value={workspaceName}
-                onChangeText={setWorkspaceName}
-              />
-              <Button onPress={createFamily} busy={busy === "create"}>
-                Создать группу
-              </Button>
-            </Card>
-            <Card>
-              <Text style={ui.heading}>Войти в группу близкого</Text>
-              <Field
-                label="Код приглашения"
-                value={joinCode}
-                onChangeText={setJoinCode}
-                autoCapitalize="characters"
-                maxLength={10}
-              />
-              <Button
-                tone="secondary"
-                onPress={() =>
-                  act("join", async () => {
-                    await api("invitations/accept", "POST", {
-                      code: joinCode.trim().toUpperCase(),
-                    });
-                    await loadWorkspaces();
-                    setTab("sender");
-                  })
-                }
-              >
-                Присоединиться
-              </Button>
-            </Card>
-          </>
-        )}
         {!workspaceId && tab !== "home" && tab !== "settings" && (
           <Card>
             <Text style={ui.text}>
-              Сначала создайте своё пространство или присоединитесь по коду на
-              главной странице.
+              Создайте группу в настройках.
             </Text>
           </Card>
         )}
-        {workspaceId && tab === "home" && (
+        {tab === "home" && (
           <HomeDashboard
             user={user}
             workspaceId={workspaceId}

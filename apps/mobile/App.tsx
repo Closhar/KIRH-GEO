@@ -51,11 +51,23 @@ function Root() {
     setSession(result);
   }
   async function logout() {
-    const paused = await pauseTracking();
-    if (paused.pendingRevocation)
+    let paused = { pendingRevocation: false };
+    try {
+      paused = await pauseTracking();
+    } catch {
+      // Local encrypted queue may be unavailable. Continue with server-side pause.
+      paused = { pendingRevocation: false };
+    }
+    if (paused.pendingRevocation) {
       throw new Error(
         "GPS остановлен. Дождитесь сети и отзыва доступа на сервере перед выходом из аккаунта.",
       );
+    }
+    try {
+      await api("location/pause", "POST");
+    } catch {
+      // The account can still be logged out; server-side pause is best effort.
+    }
     await api("auth/logout", "POST");
     await saveSession(null);
     setSession(null);

@@ -8,7 +8,20 @@ export interface Point {client_point_id: string; captured_at: string; latitude: 
 export interface Batch {device_id: string; client_batch_id: string; points: Point[]}
 let database: Promise<SQLite.SQLiteDatabase> | undefined;
 export function db(): Promise<SQLite.SQLiteDatabase> {
-  return database ??= (async () => {
+  if (database) return database;
+  database = openDatabase().catch(async () => {
+    database = undefined;
+    try {
+      await SQLite.deleteDatabaseAsync("kirh-geo-queue.db");
+    } catch {
+      // The corrupted file may already be missing or locked; a fresh open is still attempted.
+    }
+    return openDatabase();
+  });
+  return database;
+}
+
+async function openDatabase(): Promise<SQLite.SQLiteDatabase> {
     let key = await SecureStore.getItemAsync('kirh.queue.key.v1');
     if (!key) {
       key = Array.from(Crypto.getRandomBytes(32), b => b.toString(16).padStart(2, '0')).join('');
@@ -21,7 +34,6 @@ export function db(): Promise<SQLite.SQLiteDatabase> {
     if (!cipher || Object.keys(cipher).length === 0) throw new Error('Требуется сборка приложения с шифрованием SQLCipher.');
     await connection.execAsync('PRAGMA journal_mode=WAL; CREATE TABLE IF NOT EXISTS state (id INTEGER PRIMARY KEY CHECK(id=1), value TEXT NOT NULL); CREATE TABLE IF NOT EXISTS points (id TEXT PRIMARY KEY, value TEXT NOT NULL, created INTEGER NOT NULL, revision INTEGER NOT NULL); CREATE TABLE IF NOT EXISTS batches (id TEXT PRIMARY KEY, value TEXT NOT NULL, attempt INTEGER NOT NULL DEFAULT 0, retry_at INTEGER NOT NULL DEFAULT 0); CREATE TABLE IF NOT EXISTS controls (id TEXT PRIMARY KEY, path TEXT NOT NULL, method TEXT NOT NULL, value TEXT);');
     return connection;
-  })().catch(error => {database = undefined; throw error;});
 }
 export async function state(): Promise<TrackingState | null> {
   const row = await (await db()).getFirstAsync<{value: string}>('SELECT value FROM state WHERE id=1');
