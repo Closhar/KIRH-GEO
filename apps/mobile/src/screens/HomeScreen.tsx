@@ -907,6 +907,45 @@ export function HomeScreen({
             </Text>
           </Card>
         )}
+        {!workspaceId && tab === "settings" && (
+          <>
+            <Card>
+              <Text style={ui.heading}>Создать группу</Text>
+              <Field
+                label="Название группы"
+                value={workspaceName}
+                onChangeText={setWorkspaceName}
+              />
+              <Button onPress={createFamily} busy={busy === "create"}>
+                Создать группу
+              </Button>
+            </Card>
+            <Card>
+              <Text style={ui.heading}>Войти в группу близкого</Text>
+              <Field
+                label="Код приглашения"
+                value={joinCode}
+                onChangeText={setJoinCode}
+                autoCapitalize="characters"
+                maxLength={10}
+              />
+              <Button
+                tone="secondary"
+                onPress={() =>
+                  act("join", async () => {
+                    await api("invitations/accept", "POST", {
+                      code: joinCode.trim().toUpperCase(),
+                    });
+                    await loadWorkspaces();
+                    setTab("sender");
+                  })
+                }
+              >
+                Присоединиться
+              </Button>
+            </Card>
+          </>
+        )}
         {workspaceId && tab === "settings" && (
           <>
             <Card>
