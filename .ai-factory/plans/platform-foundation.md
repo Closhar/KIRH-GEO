@@ -1,6 +1,6 @@
 # KIRH GEO — архитектура и план реализации
 
-Дата: 2026-09-15. Статус: проект для обсуждения, реализация не начата.
+Дата: 2026-09-15. Статус: реализация разрешена владельцем и начата; независимые задачи выполняются агентами, интеграция и проверка централизованы.
 Branch: main. При первой проверке папка была пустой. После предоставления remote создан Git-репозиторий и каталоги monorepo; исходного кода приложений пока нет.
 
 ## Settings
@@ -9,7 +9,7 @@ Branch: main. При первой проверке папка была пуст�
 - Logging: standard в production, выборочный DEBUG в development; без координат, токенов, адресов и платежных данных.
 - Docs: yes — архитектурные решения, OpenAPI, эксплуатация и восстановление входят в каждый этап.
 - Работа последовательно: архитектура/БД → backend → админка → мобильный клиент → production.
-- Сейчас прорабатывается план. Пользователь предоставил GitHub remote и ранее разрешил синхронизацию: Git и каталоги monorepo созданы; реализация приложений и серверные изменения не начаты.
+- Пользователь разрешил реализацию всех частей и работу агентов. Git и каталоги monorepo созданы; выполняются A2/A3 и подготовка B1, серверные изменения требуют рабочего SSH-доступа.
 - Версии библиотек фиксируются после проверки совместимости перед scaffold; нельзя использовать плавающий latest в production.
 
 ## 1. Продукт и границы первого выпуска
@@ -30,6 +30,8 @@ Branch: main. При первой проверке папка была пуст�
 - Детские аккаунты и правовые правила зависят от рынка; нельзя автоматически приравнивать роль родителя к полномочию давать любое согласие.
 
 ## 2. Архитектура
+
+Уточнение владельца: взаимное отслеживание поддерживается как направленные разрешения subject → viewer. Администратор группы может открыть собственную позицию участникам и разрешить участникам видеть друг друга; фактическая выдача всегда требует согласия самого subject. Роль администратора платформы не даёт доступа к координатам. Централизованные настройки админки задают интервалы capture/upload по idle/normal/live/sport/SOS и максимальную глубину истории. Effective interval — максимум допустимых ограничений (минимальный интервал тарифа, политика платформы, выбор экономии батареи); effective retention — минимум лимита платформы, entitlement и выбора subject. Изменения версионируются и применяются на API/клиенте; уменьшение retention закрывает чтение сразу, удаление выполняется очередью.
 
 Модульный монолит Laravel с очередями и отдельными процессами API, scheduler, workers и WebSocket. На первом этапе — один PostgreSQL/PostGIS под собственным управлением, в изолированном окружении проекта на сервере. Это выбранный владельцем вариант; облачная БД отложена до роста нагрузки. EntitlementService — внутренний сервис с интерфейсом, не отдельный сетевой микросервис. Разделение на микросервисы допускается по измеренной нагрузке.
 
@@ -269,8 +271,8 @@ Deploy: immutable image SHA, staging, health/readiness, expand-contract migratio
 ### A. Зафиксировать проект и архитектурные контракты
 
 - [ ] A1. Зафиксировать российский запуск, обычные аккаунты и режим передачи по коду; утвердить аудитории/retention, MVP и бюджет нагрузки. Файлы: docs/product/{scope,consent,pricing}.md. Logging: определить события согласия/отзыва без PII. Зависимости: ответы владельца продукта; базовый сценарий уже выбран.
-- [ ] A2. Создать подробный ERD, словарь колонок, FK/CHECK/index/partition DDL и таблицу доступа всех ролей. Файлы: docs/database/*, docs/security/access-matrix.md. Logging: схема audit event. Зависимости: A1.
-- [ ] A3. Описать OpenAPI, event contracts, billing/consent/engine state machines и ADR. Файлы: packages/contracts/openapi.yaml, docs/adr/*.md. Logging: correlation IDs и безопасные error codes. Зависимости: A2.
+- [x] A2. Создать подробный ERD, словарь колонок, FK/CHECK/index/partition DDL и таблицу доступа всех ролей. Файлы: docs/database/*, docs/security/access-matrix.md. Logging: схема audit event. Зависимости: A1.
+- [x] A3. Описать OpenAPI, event contracts, billing/consent/engine state machines и ADR. Файлы: packages/contracts/openapi.yaml, docs/adr/*.md. Logging: correlation IDs и безопасные error codes. Зависимости: A2.
 - [x] A4a. Инициализировать Git/main, origin, ignore и структуру monorepo. Пользователь предоставил git@github.com:Closhar/KIRH-GEO.git; пустой remote доступен. Файлы: .gitignore, .gitattributes, README.md, apps/, infra/, packages/, docs/. Logging: git checks без секретов. Зависимости: remote destination выполнена.
 - [x] A4b. Проверено содержимое первого коммита и исключения секретов; main синхронизирован. Local/remote SHA первого коммита совпали: 0ba19e53f0b0bccd5ffa04bea0dc0feb5bc561ba. Файлы: начальное дерево репозитория. Logging: commit SHA и статус без секретов. Зависимости: A4a выполнена.
 
@@ -279,45 +281,45 @@ Gate A: согласованная архитектура, SQL-дизайн, per
 ### B. Backend foundation
 
 - [ ] B1. Scaffold Laravel, PostGIS/Redis/Reverb, local Compose, CI (lint/static analysis/tests), health endpoints. Файлы: apps/api/*, infra/compose/*, CI config. Logging: INFO startup, ERROR dependencies. Зависимости: A2–A4.
-- [ ] B2. Auth, device registration/revocation, rotating sessions, login limits. Файлы: Modules/Identity, tests/Feature/Identity. Logging: INFO security events, WARN rejected login. Зависимости: B1.
-- [ ] B3. Workspace/groups/invites/scoped roles и cross-tenant constraints. Файлы: Modules/Workspaces, Modules/Access. Logging: INFO membership changes, WARN policy denial. Зависимости: B2.
-- [ ] B4. Consent ledger, grants, primary device, pause/revoke и очистка доступа. Файлы: Modules/Consent, tests/Feature/Consent. Logging: INFO consent transitions с revision. Зависимости: B3.
+- [x] B2. Auth, device registration/revocation, rotating sessions, login limits. Файлы: Modules/Identity, tests/Feature/Identity. Logging: INFO security events, WARN rejected login. Зависимости: B1.
+- [x] B3. Workspace/groups/invites/scoped roles и cross-tenant constraints. Файлы: Modules/Workspaces, Modules/Access. Logging: INFO membership changes, WARN policy denial. Зависимости: B2.
+- [x] B4. Consent ledger, grants, primary device, pause/revoke и очистка доступа. Файлы: Modules/Consent, tests/Feature/Consent. Logging: INFO consent transitions с revision. Зависимости: B3.
 
 Gate B: тесты доказывают невозможность чужого доступа и принудительного включения передачи.
 
 ### C. Billing / entitlement
 
-- [ ] C1. Versioned catalog, EntitlementService и атомарные usage reservations/counters. Файлы: Modules/Access, Modules/Billing, migrations. Logging: INFO grant changes, WARN quota rejections. Зависимости: B3.
-- [ ] C2. Subscription state machine, month/year/trial/promo/cancel/downgrade и fake provider для тестов. Файлы: Modules/Billing/Domain и Application. Logging: INFO lifecycle transitions. Зависимости: C1.
+- [x] C1. Versioned catalog, EntitlementService и атомарные usage reservations/counters. Файлы: Modules/Access, Modules/Billing, migrations. Logging: INFO grant changes, WARN quota rejections. Зависимости: B3.
+- [x] C2. Subscription state machine, month/year/trial/promo/cancel/downgrade и fake provider для тестов. Файлы: Modules/Billing/Domain и Application. Logging: INFO lifecycle transitions. Зависимости: C1.
 - [ ] C3. Provider adapters, store verification/restore, inbox/outbox, refunds и reconciliation. Файлы: Modules/Billing/Infrastructure, tests/Integration/Billing. Logging: INFO provider event IDs, ERROR verification/reconciliation failures без payload secrets. Зависимости: C2, выбранные провайдеры и sandbox accounts.
-- [ ] C4. Конкурентные лимиты, webhook duplicates/out-of-order, trial abuse и entitlement expiry tests. Файлы: tests/Integration/{Billing,Access}. Logging: безопасные diagnostics failed assertions. Зависимости: C3.
-- [ ] C5. Партнёрские программы, атрибуция, commission ledger/reversals, hold/approval и идемпотентные выплаты через интерфейс с ручным первым адаптером. Файлы: Modules/Partners, tests/Integration/Partners. Logging: INFO commission transitions и actor/reason, WARN fraud flags без реквизитов. Зависимости: C3; правила раздела 14. Покрыть дубль платежа, частичный/полный refund, самореферал, смену версии программы, повторное подтверждение выплаты.
+- [x] C4. Конкурентные лимиты, webhook duplicates/out-of-order, trial abuse и entitlement expiry tests. Файлы: tests/Integration/{Billing,Access}. Logging: безопасные diagnostics failed assertions. Зависимости: C3.
+- [x] C5. Партнёрские программы, атрибуция, commission ledger/reversals, hold/approval и идемпотентные выплаты через интерфейс с ручным первым адаптером. Файлы: Modules/Partners, tests/Integration/Partners. Logging: INFO commission transitions и actor/reason, WARN fraud flags без реквизитов. Зависимости: C3; правила раздела 14. Покрыть дубль платежа, частичный/полный refund, самореферал, смену версии программы, повторное подтверждение выплаты.
 
 Gate C: повторные и переставленные callbacks не меняют сумму/права повторно; API закрывает превышения при гонках.
 
 ### D. Геоплатформа backend
 
-- [ ] D1. GPS batch ingestion, point receipts, partitions, offline windows, audience snapshots, transactional outbox. Файлы: Modules/Location, migrations, tests/Integration/Location. Logging: INFO batch count/latency, WARN rejects без координат. Зависимости: B4,C1.
+- [x] D1. GPS batch ingestion, point receipts, partitions, offline windows, audience snapshots, transactional outbox. Файлы: Modules/Location, migrations, tests/Integration/Location. Logging: INFO batch count/latency, WARN rejects без координат. Зависимости: B4,C1.
 - [ ] D2. CurrentLocationStore, CAS/TTL/rebuild, history query/downsampling и authorized broadcasts. Файлы: Modules/Location/Infrastructure, routes/channels.php. Logging: lag/cache errors, access denial. Зависимости: D1.
-- [ ] D3. Geofences/hysteresis/dwell/ordering, push pipeline и notification preferences. Файлы: Modules/Geofencing, Modules/Notifications. Logging: INFO transition/event ID, ERROR delivery retries. Зависимости: D2.
-- [ ] D4. SOS/ack/end, live sessions, temporary share endpoints и Activity schema. Файлы: Modules/{Safety,Sharing,Activity}. Logging: INFO session transitions без link tokens. Зависимости: D3,C1.
+- [x] D3. Geofences/hysteresis/dwell/ordering, push pipeline и notification preferences. Файлы: Modules/Geofencing, Modules/Notifications. Logging: INFO transition/event ID, ERROR delivery retries. Зависимости: D2.
+- [x] D4. SOS/ack/end, live sessions, temporary share endpoints и Activity schema. Файлы: Modules/{Safety,Sharing,Activity}. Logging: INFO session transitions без link tokens. Зависимости: D3,C1.
 
 Gate D: повторный batch, Redis outage/rebuild, outbox retry, revoke-during-send, DST history и поздние точки покрыты интеграционно на реальных PostgreSQL/PostGIS/Redis.
 
 ### E. Админка и публичный просмотр
 
-- [ ] E1. Filament guard/MFA/policies, users/workspaces metadata и audit. Файлы: app/Filament, tests/Feature/Admin. Logging: INFO admin mutations и login. Зависимости: C4,D4.
-- [ ] E2. Отдельные страницы «Тарифы и лимиты», «Промокоды», «Партнёрская программа» с настройками из раздела 14, preview/publication и audit; billing/usage/support views; отдельный partner panel для собственных ссылок/баланса/заявок с tenant isolation tests. Файлы: app/Filament/Resources, app/Filament/Partner, docs/runbooks/support.md. Logging: reasoned audited configuration/entitlement changes. Зависимости: E1,C5.
-- [ ] E3. Share web map, expiry/revoke/passcode, secure token exchange и privacy headers. Файлы: apps/share-web, tests/e2e. Logging: aggregate rate/errors без URL secrets. Зависимости: D4.
+- [x] E1. Filament guard/MFA/policies, users/workspaces metadata и audit. Файлы: app/Filament, tests/Feature/Admin. Logging: INFO admin mutations и login. Зависимости: C4,D4.
+- [x] E2. Отдельные страницы «Тарифы и лимиты», «Промокоды», «Партнёрская программа» с настройками из раздела 14, preview/publication и audit; billing/usage/support views; отдельный partner panel для собственных ссылок/баланса/заявок с tenant isolation tests. Файлы: app/Filament/Resources, app/Filament/Partner, docs/runbooks/support.md. Logging: reasoned audited configuration/entitlement changes. Зависимости: E1,C5.
+- [x] E3. Share web map, expiry/revoke/passcode, secure token exchange и privacy headers. Файлы: apps/share-web, tests/e2e. Logging: aggregate rate/errors без URL secrets. Зависимости: D4.
 
 Gate E: админ не видит маршруты без отдельного разрешённого процесса; временная ссылка теряет доступ сразу после отзыва.
 
 ### F. Мобильный клиент
 
 - [ ] F1. Device spike: native Android/iOS background capture, restart/offline/battery tests; выбрать map/location SDK и подтвердить лицензии. Файлы: apps/mobile/android, ios, docs/adr/mobile-location.md. Logging: opt-in diagnostics без координат. Зависимости: E1, macOS/device access.
-- [ ] F2. RN shell, typed API, secure auth, onboarding/permissions, workspace/invites/settings. Файлы: apps/mobile/src/{app,features}. Logging: redacted flow/error codes. Зависимости: F1,E2.
-- [ ] F3. Engine modes, encrypted queue, batch sync, consent pause/revoke и recovery. Файлы: features/location/{engine,queue,adapters}, tests. Logging: state changes, queue size, sync latency. Зависимости: F2,D1.
-- [ ] F4. Participant map/history/day picker/geofences/notifications. Файлы: features/{map,history,geofences,notifications}. Logging: map/API errors без positions. Зависимости: F3,D3.
+- [x] F2. RN shell, typed API, secure auth, onboarding/permissions, workspace/invites/settings. Файлы: apps/mobile/src/{app,features}. Logging: redacted flow/error codes. Зависимости: F1,E2.
+- [x] F3. Engine modes, encrypted queue, batch sync, consent pause/revoke и recovery. Файлы: features/location/{engine,queue,adapters}, tests. Logging: state changes, queue size, sync latency. Зависимости: F2,D1.
+- [x] F4. Participant map/history/day picker/geofences/notifications. Файлы: features/{map,history,geofences,notifications}. Logging: map/API errors без positions. Зависимости: F3,D3.
 - [ ] F5. SOS/live/shares, subscription paywall/store restore, account export/delete. Файлы: features/{sos,sharing,billing,privacy}. Logging: event IDs и lifecycle statuses. Зависимости: F4,C3,D4.
 - [ ] F6. Android/iOS E2E и field tests: denied/approximate/revoked permission, foreground/background/force-stop/reboot, Doze/low power, weak GPS/offline, billing restore, stale map, accessibility. Файлы: apps/mobile/e2e, docs/product/device-matrix.md. Logging: anonymized test diagnostics. Зависимости: F5.
 

@@ -1,0 +1,33 @@
+{
+  "expo": {
+    "name": "KIRH GEO",
+    "slug": "kirh-geo",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/kt-geo-logo.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "ru.kirh.geo",
+      "infoPlist": {"UIBackgroundModes": ["location", "remote-notification"]}
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#FFFFFF",
+        "foregroundImage": "./assets/kt-geo-logo.png"
+      },
+      "predictiveBackGestureEnabled": false,
+      "package": "ru.kirh.geo"
+    },
+    "web": {
+      "favicon": "./assets/kt-geo-logo.png"
+    },
+    "plugins": [
+      ["expo-location", {"locationAlwaysAndWhenInUsePermission": "KIRH GEO передаёт вашу геопозицию только выбранным вами людям. Передачу можно остановить в приложении.", "locationWhenInUsePermission": "Разрешите геопозицию для карты и добровольного обмена с вашей группой.", "isIosBackgroundLocationEnabled": true, "isAndroidBackgroundLocationEnabled": true, "isAndroidForegroundServiceEnabled": true}],
+      ["expo-sqlite", {"useSQLCipher": true}],
+      "expo-secure-store",
+      "expo-notifications",
+      "expo-sharing"
+    ]
+  }
+}

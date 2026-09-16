@@ -1,0 +1,97 @@
+name: Verify
+on: [push, pull_request]
+permissions:
+  contents: read
+concurrency:
+  group: verify-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  api:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgis/postgis:17-3.6-alpine
+        env:
+          POSTGRES_DB: kirh_geo_test
+          POSTGRES_USER: kirh_test
+          POSTGRES_PASSWORD: local-ci-only
+        ports: ["5432:5432"]
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+      redis:
+        image: redis:8.2-alpine
+        ports: ["6379:6379"]
+        options: --health-cmd "redis-cli ping" --health-interval 10s --health-timeout 5s --health-retries 5
+    env:
+      APP_ENV: testing
+      DB_CONNECTION: pgsql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
+      DB_DATABASE: kirh_geo_test
+      DB_USERNAME: kirh_test
+      DB_PASSWORD: local-ci-only
+      REDIS_HOST: 127.0.0.1
+      CACHE_STORE: array
+      SESSION_DRIVER: array
+      QUEUE_CONNECTION: sync
+    defaults:
+      run:
+        working-directory: apps/api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: pdo_pgsql, intl, bcmath, zip, pcntl
+          coverage: none
+      - run: composer install --no-interaction --prefer-dist
+      - run: cp .env.example .env
+      - run: php artisan key:generate
+      - run: composer validate --strict
+      - run: php artisan migrate --force --seed
+      - run: vendor/bin/pint --test
+      - run: php artisan test
+      - run: composer audit
+  infrastructure:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate shell syntax
+        run: |
+          for script in infra/deploy/*.sh; do bash -n "$script"; done
+          sh -n infra/postgres/init.sh
+      - name: Validate production Compose
+        env:
+          DB_PASSWORD: ci-placeholder
+          MIGRATOR_PASSWORD: ci-placeholder
+          APP_ENV_FILE: ../../apps/api/.env.example
+        run: docker compose -f infra/compose/compose.yml -f infra/compose/compose.production.yml config --quiet
+      - name: Build API and proxy
+        run: |
+          docker build -f infra/docker/Dockerfile --target production -t kirh-geo-api:ci .
+          docker build -f infra/docker/Dockerfile --target proxy -t kirh-geo-proxy:ci .
+          docker build -f infra/docker/Dockerfile --target share -t kirh-geo-share:ci .
+  clients:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        project: [apps/mobile, packages/contracts, apps/share-web]
+    defaults:
+      run:
+        working-directory: ${{ matrix.project }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.13.1'
+          cache: npm
+          cache-dependency-path: ${{ matrix.project }}/package-lock.json
+      - run: npm ci
+      - if: matrix.project != 'apps/share-web'
+        run: npm run typecheck
+      - if: matrix.project == 'apps/share-web'
+        run: npm run build
+      - run: npm test
+      - if: matrix.project == 'packages/contracts'
+        run: npm run audit:backend
+      - if: matrix.project == 'apps/mobile'
+        run: npx expo-doctor

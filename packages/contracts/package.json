@@ -1,0 +1,18 @@
+{
+  "name": "@kirh-geo/contracts",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {".": "./src/client.ts", "./schema": "./src/schema.ts"},
+  "scripts": {
+    "generate": "node scripts/build-openapi.mjs && openapi-typescript openapi.active.json -o src/schema.ts",
+    "audit:backend": "node scripts/audit-backend.mjs",
+    "typecheck": "tsc --noEmit",
+    "test": "tsc --noEmit false --outDir .test-build --rootDir . && node --test tests/*.test.mjs"
+  },
+  "devDependencies": {
+    "@apidevtools/swagger-parser": "13.0.0",
+    "openapi-typescript": "7.13.0",
+    "typescript": "5.9.3"
+  }
+}

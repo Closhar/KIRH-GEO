@@ -1,0 +1,22 @@
+services:
+  api:
+    build: { context: ../.., dockerfile: infra/docker/Dockerfile, target: development }
+    volumes: ["../../apps/api:/app"]
+    environment: { APP_ENV: local, APP_DEBUG: "true" }
+  worker:
+    volumes: ["../../apps/api:/app"]
+  scheduler:
+    volumes: ["../../apps/api:/app"]
+  reverb:
+    volumes: ["../../apps/api:/app"]
+  proxy:
+    build: { context: ../.., dockerfile: infra/docker/Dockerfile, target: proxy }
+    ports: ["127.0.0.1:18080:8080"]
+    volumes: ["../../apps/api/public:/app/public:ro"]
+  share:
+    build: { context: ../.., dockerfile: infra/docker/Dockerfile, target: share }
+    ports: ["127.0.0.1:18081:8080"]
+  postgres:
+    ports: ["127.0.0.1:15432:5432"]
+  redis:
+    ports: ["127.0.0.1:16379:6379"]

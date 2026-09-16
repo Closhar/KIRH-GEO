@@ -1,0 +1,274 @@
+[
+  {
+    "method": "post",
+    "path": "/auth/email/verification"
+  },
+  {
+    "method": "post",
+    "path": "/auth/email/verify"
+  },
+  {
+    "method": "post",
+    "path": "/auth/forgot-password"
+  },
+  {
+    "method": "post",
+    "path": "/auth/login"
+  },
+  {
+    "method": "post",
+    "path": "/auth/logout"
+  },
+  {
+    "method": "get",
+    "path": "/auth/me"
+  },
+  {
+    "method": "post",
+    "path": "/auth/refresh"
+  },
+  {
+    "method": "post",
+    "path": "/auth/register"
+  },
+  {
+    "method": "post",
+    "path": "/auth/reset-password"
+  },
+  {
+    "method": "get",
+    "path": "/billing/catalog"
+  },
+  {
+    "method": "post",
+    "path": "/broadcasting/auth"
+  },
+  {
+    "method": "post",
+    "path": "/device-tokens"
+  },
+  {
+    "method": "get",
+    "path": "/devices"
+  },
+  {
+    "method": "delete",
+    "path": "/devices/{device}"
+  },
+  {
+    "method": "get",
+    "path": "/health"
+  },
+  {
+    "method": "post",
+    "path": "/invitations/accept"
+  },
+  {
+    "method": "post",
+    "path": "/invitations/join"
+  },
+  {
+    "method": "post",
+    "path": "/location/pause"
+  },
+  {
+    "method": "post",
+    "path": "/locations/batches"
+  },
+  {
+    "method": "get",
+    "path": "/notifications"
+  },
+  {
+    "method": "post",
+    "path": "/notifications/{notification}/read"
+  },
+  {
+    "method": "get",
+    "path": "/partners/me"
+  },
+  {
+    "method": "post",
+    "path": "/partners/payouts"
+  },
+  {
+    "method": "post",
+    "path": "/privacy/deletion"
+  },
+  {
+    "method": "post",
+    "path": "/privacy/exports"
+  },
+  {
+    "method": "get",
+    "path": "/privacy/exports/{export}"
+  },
+  {
+    "method": "get",
+    "path": "/privacy/exports/{export}/download"
+  },
+  {
+    "method": "get",
+    "path": "/shares/current"
+  },
+  {
+    "method": "post",
+    "path": "/shares/exchange"
+  },
+  {
+    "method": "post",
+    "path": "/webhooks/payments/{provider}"
+  },
+  {
+    "method": "get",
+    "path": "/workspaces"
+  },
+  {
+    "method": "post",
+    "path": "/workspaces"
+  },
+  {
+    "method": "post",
+    "path": "/workspaces/{workspaceId}/billing/cancel"
+  },
+  {
+    "method": "post",
+    "path": "/workspaces/{workspaceId}/billing/checkout"
+  },
+  {
+    "method": "post",
+    "path": "/workspaces/{workspaceId}/billing/promo"
+  },
+  {
+    "method": "post",
+    "path": "/workspaces/{workspaceId}/billing/restore"
+  },
+  {
+    "method": "get",
+    "path": "/workspaces/{workspaceId}/billing/subscription"
+  },
+  {
+    "method": "post",
+    "path": "/workspaces/{workspaceId}/billing/trial"
+  },
+  {
+    "method": "get",
+    "path": "/workspaces/{workspaceId}/effective-entitlements"
+  },
+  {
+    "method": "get",
+    "path": "/workspaces/{workspaceId}/groups"
+  },
+  {
+    "method": "post",
+    "path": "/workspaces/{workspaceId}/groups"
+  },
+  {
+    "method": "put",
+    "path": "/workspaces/{workspaceId}/groups/{groupId}/visibility"
+  },
+  {
+    "method": "post",
+    "path": "/workspaces/{workspaceId}/invitations"
+  },
+  {
+    "method": "post",
+    "path": "/workspaces/{workspaceId}/leave"
+  },
+  {
+    "method": "get",
+    "path": "/workspaces/{workspaceId}/location-policy"
+  },
+  {
+    "method": "get",
+    "path": "/workspaces/{workspaceId}/members"
+  },
+  {
+    "method": "post",
+    "path": "/workspaces/{workspaceId}/partners/attribution"
+  },
+  {
+    "method": "post",
+    "path": "/workspaces/{workspaceId}/sharing-grants"
+  },
+  {
+    "method": "get",
+    "path": "/workspaces/{workspaceId}/sharing-grants"
+  },
+  {
+    "method": "delete",
+    "path": "/workspaces/{workspaceId}/sharing-grants/{grantId}"
+  },
+  {
+    "method": "post",
+    "path": "/workspaces/{workspaceId}/transfer-ownership"
+  },
+  {
+    "method": "get",
+    "path": "/workspaces/{workspace}/geofence-events"
+  },
+  {
+    "method": "post",
+    "path": "/workspaces/{workspace}/geofences"
+  },
+  {
+    "method": "get",
+    "path": "/workspaces/{workspace}/geofences"
+  },
+  {
+    "method": "delete",
+    "path": "/workspaces/{workspace}/geofences/{geofence}"
+  },
+  {
+    "method": "get",
+    "path": "/workspaces/{workspace}/live-sessions"
+  },
+  {
+    "method": "post",
+    "path": "/workspaces/{workspace}/live-sessions"
+  },
+  {
+    "method": "delete",
+    "path": "/workspaces/{workspace}/live-sessions/{session}"
+  },
+  {
+    "method": "post",
+    "path": "/workspaces/{workspace}/live-sessions/{session}/accept"
+  },
+  {
+    "method": "get",
+    "path": "/workspaces/{workspace}/locations/current"
+  },
+  {
+    "method": "get",
+    "path": "/workspaces/{workspace}/members/{user}/locations/history"
+  },
+  {
+    "method": "get",
+    "path": "/workspaces/{workspace}/sos"
+  },
+  {
+    "method": "post",
+    "path": "/workspaces/{workspace}/sos"
+  },
+  {
+    "method": "post",
+    "path": "/workspaces/{workspace}/sos/{sos}/acknowledge"
+  },
+  {
+    "method": "post",
+    "path": "/workspaces/{workspace}/sos/{sos}/end"
+  },
+  {
+    "method": "get",
+    "path": "/workspaces/{workspace}/temporary-shares"
+  },
+  {
+    "method": "post",
+    "path": "/workspaces/{workspace}/temporary-shares"
+  },
+  {
+    "method": "delete",
+    "path": "/workspaces/{workspace}/temporary-shares/{share}"
+  }
+]

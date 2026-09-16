@@ -1,0 +1,15 @@
+**/.env
+**/.env.*
+!**/.env.example
+**/vendor
+**/node_modules
+**/storage/logs/*
+**/storage/framework/*
+**/bootstrap/cache/*.php
+.git
+.local
+backups
+apps/mobile
+apps/share-web
+docs
+.ai-factory

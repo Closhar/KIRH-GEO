@@ -22,7 +22,10 @@ Pods/
 .gradle/
 build/
 dist/
+dist-verify/
 coverage/
+.test-export/
+.test-build/
 DerivedData/
 .phpunit.cache/
 .phpunit.result.cache
@@ -41,6 +44,9 @@ tmp/
 temp/
 apps/api/storage/*.key
 apps/api/storage/logs/*
+apps/api/public/css/
+apps/api/public/js/
+apps/api/public/fonts/
 
 # Machine-specific files
 .DS_Store
