@@ -37,6 +37,11 @@ function Root() {
   async function loadSession() {
     setLoading(true);
     try {
+      let current = await getSession();
+      if (!current) {
+        setSession(null);
+        return;
+      }
       if (await getBiometricEnabled()) {
         const supported =
           (await LocalAuthentication.hasHardwareAsync()) &&
@@ -52,8 +57,7 @@ function Root() {
           }
         }
       }
-      let current = await getSession();
-      if (current && !current.user) {
+      if (!current.user) {
         const me = await api<{ user: User }>("auth/me");
         current = { ...current, user: me.user };
         await saveSession(current);
