@@ -24,17 +24,23 @@ import { api } from "../shared/api";
 
 export function AuthScreen({
   onAuthenticate,
+  initialMode = "login",
+  initialCode = "",
+  onBack,
 }: {
   onAuthenticate: (
     mode: AuthMode,
     fields: Record<string, string>,
   ) => Promise<void>;
+  initialMode?: AuthMode;
+  initialCode?: string;
+  onBack?: () => void;
 }) {
-  const [mode, setMode] = useState<AuthMode>("login");
+  const [mode, setMode] = useState<AuthMode>(initialMode);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [code, setCode] = useState("");
+  const [code, setCode] = useState(initialCode);
   const [understood, setUnderstood] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -101,6 +107,9 @@ export function AuthScreen({
         contentContainerStyle={[ui.content, { paddingTop: 25 }]}
         keyboardShouldPersistTaps="handled"
       >
+        {onBack && (
+          <Button tone="ghost" onPress={onBack}>← Назад</Button>
+        )}
         <Brand />
         <View style={s.hero}>
           <View style={s.orbitOne} />

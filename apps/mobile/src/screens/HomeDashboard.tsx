@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, Animated, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Animated, Share, StyleSheet, Text, View } from "react-native";
 import * as Location from "expo-location";
+import { Camera, Map, Marker } from "@maplibre/maplibre-react-native";
 import { Button, Card, Title, ui } from "../ui/components";
 import { useTheme } from "../ui/theme";
 import { MapScreen } from "./MapScreen";
@@ -12,6 +13,21 @@ type DeviceLocation = {
   accuracy: number | null;
 };
 
+const OSM_STYLE = {
+  version: 8,
+  sources: {
+    osm: {
+      type: "raster" as const,
+      tiles: ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
+      tileSize: 256,
+      attribution: "© OpenStreetMap contributors",
+    },
+  },
+  layers: [
+    { id: "osm", type: "raster" as const, source: "osm", minzoom: 0, maxzoom: 19 },
+  ],
+};
+
 function haversineMeters(a: DeviceLocation, b: { latitude: number; longitude: number }) {
   const R = 6371000;
   const toRad = (value: number) => (value * Math.PI) / 180;
@@ -19,16 +35,16 @@ function haversineMeters(a: DeviceLocation, b: { latitude: number; longitude: nu
   const dLon = toRad(b.longitude - a.longitude);
   const lat1 = toRad(a.latitude);
   const lat2 = toRad(b.latitude);
-  const h =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) ** 2;
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) ** 2;
   return R * 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
 }
 
 function formatDistance(meters: number) {
-  return meters < 1000
-    ? `${Math.round(meters)} м`
-    : `${(meters / 1000).toFixed(1)} км`;
+  return meters < 1000 ? `${Math.round(meters)} м` : `${(meters / 1000).toFixed(1)} км`;
+}
+
+function yandexNavigatorUrl(location: DeviceLocation) {
+  return `https://yandex.ru/navi/?whatshere%5Bpoint%5D=${location.latitude},${location.longitude}&whatshere%5Bzoom%5D=16`;
 }
 
 export function HomeDashboard({
@@ -36,20 +52,17 @@ export function HomeDashboard({
   workspaceId,
   positions,
   onRefresh,
-  onSendCoordinates,
 }: {
   user: User;
   workspaceId: string;
   positions: MemberPosition[];
   onRefresh: () => Promise<void>;
-  onSendCoordinates: () => void;
 }) {
   const { colors: c } = useTheme();
   const [deviceLocation, setDeviceLocation] = useState<DeviceLocation | null>(null);
   const [locationError, setLocationError] = useState("");
   const [loadingLocation, setLoadingLocation] = useState(true);
   const [heading, setHeading] = useState(0);
-
   const compassRotation = useMemo(() => new Animated.Value(0), []);
 
   async function loadDeviceLocation() {
@@ -61,9 +74,7 @@ export function HomeDashboard({
         setLocationError("Разрешите геопозицию, чтобы увидеть своё местоположение.");
         return;
       }
-      const point = await Location.getCurrentPositionAsync({
-        accuracy: Location.Accuracy.Balanced,
-      });
+      const point = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
       setDeviceLocation({
         latitude: point.coords.latitude,
         longitude: point.coords.longitude,
@@ -80,8 +91,7 @@ export function HomeDashboard({
     void loadDeviceLocation();
     let subscription: Location.LocationSubscription | undefined;
     void Location.watchHeadingAsync((event) => {
-      const next = event.trueHeading ?? event.magHeading;
-      setHeading(next || 0);
+      setHeading(event.trueHeading ?? event.magHeading ?? 0);
     }).then((value) => {
       subscription = value;
     });
@@ -113,6 +123,18 @@ export function HomeDashboard({
 
   const visible = positions.filter((p) => p.location && p.status !== "unavailable");
 
+  async function shareCoordinates() {
+    if (!deviceLocation) {
+      setLocationError("Сначала определите местоположение.");
+      return;
+    }
+    const url = yandexNavigatorUrl(deviceLocation);
+    await Share.share({
+      message: `Моя геопозиция: ${url}`,
+      title: "Моя геопозиция",
+    });
+  }
+
   return (
     <View style={{ gap: 18 }}>
       <Card style={{ backgroundColor: c.purpleSoft, overflow: "hidden" }}>
@@ -122,9 +144,7 @@ export function HomeDashboard({
           <Text style={{ color: c.green, fontWeight: "800", fontSize: 12, letterSpacing: 1.1 }}>
             ВЫ НА СВЯЗИ
           </Text>
-          <Title subtitle="Только вы решаете, кто видит вашу геопозицию.">
-            {user.name}
-          </Title>
+          <Title subtitle="Только вы решаете, кто видит вашу геопозицию.">{user.name}</Title>
           {loadingLocation ? (
             <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
               <ActivityIndicator color={c.purple} />
@@ -138,23 +158,42 @@ export function HomeDashboard({
                 {deviceLocation.latitude.toFixed(6)}, {deviceLocation.longitude.toFixed(6)}
               </Text>
               <Text style={ui.muted}>
-                Точность:{" "}
-                {deviceLocation.accuracy === null
-                  ? "неизвестна"
-                  : `±${Math.round(deviceLocation.accuracy)} м`}
+                Точность: {deviceLocation.accuracy === null ? "неизвестна" : `±${Math.round(deviceLocation.accuracy)} м`}
               </Text>
             </View>
           ) : null}
-          <Button onPress={onSendCoordinates}>Отправить свои координаты</Button>
+          <Button onPress={shareCoordinates}>Поделиться своими координатами</Button>
         </View>
       </Card>
+
+      {deviceLocation && (
+        <Card style={{ padding: 0, overflow: "hidden", height: 220 }}>
+          <Map style={{ flex: 1 }} mapStyle={OSM_STYLE as any}>
+            <Camera center={[deviceLocation.longitude, deviceLocation.latitude]} zoom={15} />
+            <Marker lngLat={[deviceLocation.longitude, deviceLocation.latitude]}>
+              <View style={[deviceMarker(c).marker, { backgroundColor: c.purple }]}>
+                <Text style={{ color: "#fff", fontWeight: "900" }}>●</Text>
+              </View>
+            </Marker>
+          </Map>
+        </Card>
+      )}
 
       <View style={[ui.row, { gap: 14 }]}>
         <Card style={{ flex: 1, alignItems: "center", backgroundColor: c.surface }}>
           <Text style={ui.heading}>Компас</Text>
           <View style={compass(c).outer}>
-            <Text style={compass(c).north}>N</Text>
-            <Animated.View style={[compass(c).needleWrap, { transform: [{ rotate: compassRotation.interpolate({ inputRange: [-360, 360], outputRange: ["-360deg", "360deg"] }) }] }]}>
+            {compassLabels.map((item) => (
+              <Text key={item.label} style={[compass(c).direction, item.position]}>
+                {item.label}
+              </Text>
+            ))}
+            <Animated.View
+              style={[
+                compass(c).needleWrap,
+                { transform: [{ rotate: compassRotation.interpolate({ inputRange: [-360, 360], outputRange: ["-360deg", "360deg"] }) }] },
+              ]}
+            >
               <View style={compass(c).needleNorth} />
               <View style={compass(c).needleSouth} />
             </Animated.View>
@@ -178,70 +217,73 @@ export function HomeDashboard({
         </Card>
       </View>
 
-      <MapScreen
-        workspaceId={workspaceId}
-        positions={positions}
-        onRefresh={onRefresh}
-      />
+      {workspaceId ? (
+        <MapScreen workspaceId={workspaceId} positions={positions} onRefresh={onRefresh} />
+      ) : null}
     </View>
   );
 }
 
+const compassLabels = [
+  { label: "N", position: { top: 8, left: 65 } },
+  { label: "NE", position: { top: 22, right: 18 } },
+  { label: "E", position: { top: 65, right: 8 } },
+  { label: "SE", position: { bottom: 18, right: 18 } },
+  { label: "S", position: { bottom: 8, left: 65 } },
+  { label: "SW", position: { bottom: 18, left: 18 } },
+  { label: "W", position: { top: 65, left: 8 } },
+  { label: "NW", position: { top: 22, left: 18 } },
+];
+
 const hero = (c: ReturnType<typeof useTheme>["colors"]) =>
   StyleSheet.create({
-    orbOne: {
-      position: "absolute",
-      width: 150,
-      height: 150,
-      borderRadius: 75,
-      right: -60,
-      top: -45,
-      backgroundColor: c.greenSoft,
-      opacity: 0.7,
-    },
-    orbTwo: {
-      position: "absolute",
-      width: 110,
-      height: 110,
-      borderRadius: 55,
-      right: -20,
-      bottom: -35,
-      backgroundColor: c.purple,
-      opacity: 0.12,
+    orbOne: { position: "absolute", width: 150, height: 150, borderRadius: 75, right: -60, top: -45, backgroundColor: c.greenSoft, opacity: 0.7 },
+    orbTwo: { position: "absolute", width: 110, height: 110, borderRadius: 55, right: -20, bottom: -35, backgroundColor: c.purple, opacity: 0.12 },
+  });
+
+const deviceMarker = (c: ReturnType<typeof useTheme>["colors"]) =>
+  StyleSheet.create({
+    marker: {
+      width: 30,
+      height: 30,
+      borderRadius: 15,
+      borderWidth: 3,
+      borderColor: "#fff",
+      alignItems: "center",
+      justifyContent: "center",
     },
   });
 
 const compass = (c: ReturnType<typeof useTheme>["colors"]) =>
   StyleSheet.create({
     outer: {
-      width: 120,
-      height: 120,
-      borderRadius: 60,
+      width: 150,
+      height: 150,
+      borderRadius: 75,
       borderWidth: 3,
       borderColor: c.line,
       alignItems: "center",
       justifyContent: "center",
       backgroundColor: c.background,
     },
-    north: {
+    direction: {
       position: "absolute",
-      top: 8,
-      color: c.danger,
-      fontWeight: "900",
-      fontSize: 16,
+      color: c.muted,
+      fontWeight: "800",
+      fontSize: 13,
     },
     needleWrap: {
       width: 4,
-      height: 86,
+      height: 96,
       alignItems: "center",
       justifyContent: "space-between",
     },
     needleNorth: {
       width: 0,
       height: 0,
-      borderLeftWidth: 10,
-      borderRightWidth: 10,
-      borderBottomWidth: 40,
+      borderLeftWidth: 11,
+      borderRightWidth: 11,
+      borderBottomWidth: 46,
       borderLeftColor: "transparent",
       borderRightColor: "transparent",
       borderBottomColor: c.danger,
@@ -249,9 +291,9 @@ const compass = (c: ReturnType<typeof useTheme>["colors"]) =>
     needleSouth: {
       width: 0,
       height: 0,
-      borderLeftWidth: 10,
-      borderRightWidth: 10,
-      borderTopWidth: 40,
+      borderLeftWidth: 11,
+      borderRightWidth: 11,
+      borderTopWidth: 46,
       borderLeftColor: "transparent",
       borderRightColor: "transparent",
       borderTopColor: c.muted,

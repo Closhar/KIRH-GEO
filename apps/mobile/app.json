@@ -2,6 +2,7 @@
   "expo": {
     "name": "KIRH GEO",
     "slug": "kirh-geo",
+    "scheme": "kirhgeo",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/kt-geo-logo.png",

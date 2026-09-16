@@ -8,6 +8,7 @@ export interface Session {
   user?: {id: string; name: string; email?: string};
 }
 const SESSION_KEY = 'kirh.session.v1';
+const BIOMETRIC_KEY = 'kirh.biometric.v1';
 const options = {keychainAccessible: SecureStore.AFTER_FIRST_UNLOCK_THIS_DEVICE_ONLY};
 export async function getSession(): Promise<Session | null> {
   const stored = await SecureStore.getItemAsync(SESSION_KEY);
@@ -24,4 +25,14 @@ export async function installationId(): Promise<string> {
     await SecureStore.setItemAsync('kirh.installation.v1', id, options);
   }
   return id;
+}
+
+export async function getBiometricEnabled(): Promise<boolean> {
+  const value = await SecureStore.getItemAsync(BIOMETRIC_KEY);
+  return value === '1';
+}
+
+export async function setBiometricEnabled(enabled: boolean): Promise<void> {
+  if (enabled) await SecureStore.setItemAsync(BIOMETRIC_KEY, '1', options);
+  else await SecureStore.deleteItemAsync(BIOMETRIC_KEY);
 }

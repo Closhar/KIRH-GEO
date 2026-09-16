@@ -52,6 +52,7 @@ import {
 } from "./types";
 import { HomeDashboard } from "./HomeDashboard";
 import { PrivacyPanel } from "../features/privacy/PrivacyPanel";
+import { getBiometricEnabled, setBiometricEnabled } from "../shared/session";
 
 type Tab = "home" | "sender" | "group" | "settings";
 type TrackingStatus = {
@@ -144,6 +145,7 @@ export function HomeScreen({
   const [liveSessions, setLiveSessions] = useState<LiveSession[]>([]);
   const [sosEvents, setSosEvents] = useState<SosEvent[]>([]);
   const [entitlements, setEntitlements] = useState<Record<string, boolean | number> | null>(null);
+  const [biometricEnabled, setBiometricEnabledState] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuAnim = useRef(new Animated.Value(0)).current;
   const activeWorkspace = useRef("");
@@ -241,6 +243,9 @@ export function HomeScreen({
     getTrackingStatus()
       .then(setStatus)
       .catch((e) => setError(e.message));
+    getBiometricEnabled()
+      .then(setBiometricEnabledState)
+      .catch(() => {});
   }, []);
   useEffect(() => {
     const subscription = Notifications.addPushTokenListener((token) => {
@@ -556,7 +561,6 @@ export function HomeScreen({
             workspaceId={workspaceId}
             positions={positions}
             onRefresh={refresh}
-            onSendCoordinates={() => setTab("sender")}
           />
         )}
         {workspaceId && tab === "sender" && (
@@ -755,7 +759,7 @@ export function HomeScreen({
                         tone="secondary"
                         onPress={() =>
                           Share.share({
-                            message: `Присоединяйся в KIRH GEO. Код приглашения: ${inviteCode}. Он действует 15 минут. Координаты будут доступны только после твоего согласия.`,
+                            message: `Присоединяйся в KIRH GEO по ссылке: kirhgeo://join?code=${inviteCode}\n\nКод: ${inviteCode}. Действует 15 минут. Координаты будут доступны только после твоего согласия.`,
                           })
                         }
                       >
@@ -900,6 +904,22 @@ export function HomeScreen({
               <Text style={ui.text}>Тёмная тема</Text>
               <Chip active={dark} onPress={toggle}>
                 {dark ? "Включена" : "Выключена"}
+              </Chip>
+            </View>
+            <View style={[ui.row, { justifyContent: "space-between" }]}>
+              <Text style={ui.text}>Вход по отпечатку пальца</Text>
+              <Chip
+                active={biometricEnabled}
+                onPress={() =>
+                  act("biometric", async () => {
+                    const next = !biometricEnabled;
+                    await setBiometricEnabled(next);
+                    setBiometricEnabledState(next);
+                    setNotice(next ? "Вход по отпечатку включён." : "Вход по отпечатку выключен.");
+                  })
+                }
+              >
+                {biometricEnabled ? "Включён" : "Выключен"}
               </Chip>
             </View>
             <Text style={ui.muted}>
