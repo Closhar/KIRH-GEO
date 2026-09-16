@@ -1435,7 +1435,7 @@ export function HomeScreen({
                 accessibilityRole="button"
                 style={[s.drawerAction, { borderColor: themeColors.line }]}
               >
-                <Text style={{ color: themeColors.ink, fontSize: 34, textAlign: "center" }}>{dark ? "◐" : "◑"}</Text>
+                <Text style={{ color: themeColors.ink, fontSize: 42, lineHeight: 42, textAlign: "center", includeFontPadding: false }}>{dark ? "◐" : "◑"}</Text>
               </Pressable>
               <Pressable
                 onPress={() => {
@@ -1445,7 +1445,7 @@ export function HomeScreen({
                 accessibilityRole="button"
                 style={[s.drawerAction, { borderColor: themeColors.line }]}
               >
-                <Text style={{ color: themeColors.danger, fontSize: 34, textAlign: "center" }}>↩</Text>
+                <Text style={{ color: themeColors.danger, fontSize: 42, lineHeight: 42, textAlign: "center", includeFontPadding: false }}>↩</Text>
               </Pressable>
             </View>
           </View>
@@ -1513,7 +1513,7 @@ const s = StyleSheet.create({
     width: 290,
     backgroundColor: c.surface,
     padding: 22,
-    gap: 8,
+    gap: 4,
     borderTopLeftRadius: 28,
     borderBottomLeftRadius: 28,
   },
@@ -1567,7 +1567,7 @@ const s = StyleSheet.create({
     borderWidth: 2,
   },
   drawerItem: {
-    paddingVertical: 10,
+    paddingVertical: 5,
     paddingHorizontal: 6,
     borderRadius: 14,
   },
