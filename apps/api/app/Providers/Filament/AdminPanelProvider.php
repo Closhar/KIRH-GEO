@@ -7,6 +7,7 @@ use App\Filament\Pages\PartnerProgram;
 use App\Filament\Pages\PromoCodes;
 use App\Filament\Pages\SupportOverview;
 use App\Filament\Pages\Tariffs;
+use App\Filament\Pages\TestAccess;
 use Filament\Auth\MultiFactor\App\AppAuthentication;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
@@ -31,7 +32,7 @@ class AdminPanelProvider extends PanelProvider
             ->favicon(asset('brand/kt-geo-logo.png'))
             ->colors(['primary' => Color::hex('#56318f'), 'success' => Color::hex('#00b58b')])
             ->multiFactorAuthentication([AppAuthentication::make()->recoverable()], isRequired: true)
-            ->pages([LocationPolicy::class, Tariffs::class, PromoCodes::class, PartnerProgram::class, SupportOverview::class])
+            ->pages([LocationPolicy::class, Tariffs::class, TestAccess::class, PromoCodes::class, PartnerProgram::class, SupportOverview::class])
             ->middleware([
                 EncryptCookies::class, AddQueuedCookiesToResponse::class, StartSession::class,
                 AuthenticateSession::class, ShareErrorsFromSession::class, VerifyCsrfToken::class,

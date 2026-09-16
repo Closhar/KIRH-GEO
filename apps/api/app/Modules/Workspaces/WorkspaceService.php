@@ -6,6 +6,7 @@ namespace App\Modules\Workspaces;
 
 use App\Modules\Access\EntitlementService;
 use App\Modules\Access\PermissionService;
+use App\Modules\Access\TestAccessService;
 use App\Modules\Consent\ConsentService;
 use App\Modules\Identity\Application\SessionService;
 use App\Support\ApiException;
@@ -29,6 +30,7 @@ final class WorkspaceService
                 throw new ApiException('CATALOG_UNAVAILABLE', 'Default access is not configured.', 503);
             }
             $this->entitlements->grantPlan($id, $planId, 'plan', $planId);
+            app(TestAccessService::class)->grantWorkspace($id);
             Log::info('workspace.created', ['workspace_id' => $id]);
 
             return ['id' => $id, 'name' => $name];

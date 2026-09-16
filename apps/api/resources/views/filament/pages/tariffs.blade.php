@@ -10,7 +10,7 @@
             @include('filament.partials.field',['name'=>'provider','label'=>'Платёжный провайдер','type'=>'select','options'=>['sandbox'=>'Тестовый','yookassa'=>'ЮKassa']])
         </div><h2 style="margin-top:1rem">Возможности и лимиты API</h2><div class="kg-grid">
         @foreach($features as $feature)
-            @include('filament.partials.field',['name'=>'features.'.$feature->id,'label'=>$feature->key,'type'=>$feature->value_type === 'boolean' ? 'checkbox' : 'number','min'=>0])
+            @include('filament.partials.field',['name'=>'features.'.$feature->id,'label'=>\App\Filament\Support\FeatureLabels::label($feature->key),'type'=>$feature->value_type === 'boolean' ? 'checkbox' : 'number','min'=>0])
         @endforeach
         </div><div class="kg-actions"><x-filament::button type="submit">Сохранить новую версию-черновик</x-filament::button></div></form>
         @include('filament.partials.reason')
