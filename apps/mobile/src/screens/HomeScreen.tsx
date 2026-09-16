@@ -154,6 +154,7 @@ export function HomeScreen({
   const workspace = workspaces.find((w) => w.id === workspaceId);
   const isOwner = workspace?.owner_user_id === user.id;
   const others = members.filter((m) => m.id !== user.id);
+  const userStatus = workspace ? (isOwner ? "Владелец" : "Участник") : "Без группы";
   const activeGrants = grants.filter(
     (g) =>
       !g.revoked_at &&
@@ -1405,31 +1406,40 @@ export function HomeScreen({
         >
           <View style={[s.drawerOrbOne, { backgroundColor: themeColors.purpleSoft }]} />
           <View style={[s.drawerOrbTwo, { backgroundColor: themeColors.greenSoft }]} />
+          <View pointerEvents="none" style={s.drawerPattern}>
+            <Text style={[s.drawerPatternIcon, { color: themeColors.purple }]}>◎</Text>
+            <View style={[s.drawerRing, { borderColor: themeColors.green }]} />
+          </View>
           <View style={ui.row}>
-            <Brand compact />
+            <Text style={[s.drawerBrand, { color: themeColors.purple }]}>KIRH GEO</Text>
             <Pressable onPress={closeMenu} accessibilityRole="button">
               <Text style={[s.drawerClose, { color: themeColors.muted }]}>✕</Text>
             </Pressable>
           </View>
-          <Text style={[s.drawerUser, { color: themeColors.ink }]}>{user.name}</Text>
-          <View style={ui.row}>
-            <Pressable
-              onPress={toggle}
-              accessibilityRole="button"
-              style={[s.drawerAction, { borderColor: themeColors.line }]}
-            >
-              <Text style={{ color: themeColors.ink, fontSize: 22 }}>{dark ? "☀" : "☾"}</Text>
-            </Pressable>
-            <Pressable
-              onPress={() => {
-                closeMenu();
-                void act("logout", onLogout);
-              }}
-              accessibilityRole="button"
-              style={[s.drawerAction, { borderColor: themeColors.line }]}
-            >
-              <Text style={{ color: themeColors.danger, fontSize: 22 }}>⏻</Text>
-            </Pressable>
+          <View style={[ui.row, { justifyContent: "space-between", marginTop: 8 }]}>
+            <View style={{ flex: 1 }}>
+              <Text style={[s.drawerUser, { color: themeColors.ink, fontSize: 16 }]}>{user.name}</Text>
+              <Text style={{ color: themeColors.muted, fontSize: 12, marginTop: 3 }}>{userStatus}</Text>
+            </View>
+            <View style={ui.row}>
+              <Pressable
+                onPress={toggle}
+                accessibilityRole="button"
+                style={[s.drawerAction, { borderColor: themeColors.line }]}
+              >
+                <Text style={{ color: themeColors.ink, fontSize: 20 }}>{dark ? "◐" : "◑"}</Text>
+              </Pressable>
+              <Pressable
+                onPress={() => {
+                  closeMenu();
+                  void act("logout", onLogout);
+                }}
+                accessibilityRole="button"
+                style={[s.drawerAction, { borderColor: themeColors.line }]}
+              >
+                <Text style={{ color: themeColors.danger, fontSize: 20 }}>↪</Text>
+              </Pressable>
+            </View>
           </View>
           <View style={ui.divider} />
           {tabs.map((item) => (
@@ -1441,7 +1451,7 @@ export function HomeScreen({
               }}
               style={s.drawerItem}
             >
-              <Text style={s.drawerItemText}>{item.title}</Text>
+              <Text style={[s.drawerItemText, { color: themeColors.ink }]}>{item.title}</Text>
             </Pressable>
           ))}
           <View style={ui.divider} />
@@ -1495,7 +1505,8 @@ const s = StyleSheet.create({
     borderBottomLeftRadius: 28,
   },
   drawerClose: { color: c.muted, fontSize: 22, fontWeight: "700" },
-  drawerUser: { fontSize: 18, fontWeight: "800", marginTop: 6 },
+  drawerBrand: { fontSize: 19, fontWeight: "800", letterSpacing: 1.4 },
+  drawerUser: { fontSize: 16, fontWeight: "800" },
   drawerAction: {
     width: 48,
     height: 48,
@@ -1522,6 +1533,24 @@ const s = StyleSheet.create({
     bottom: 30,
     left: -35,
     opacity: 0.18,
+  },
+  drawerPattern: {
+    position: "absolute",
+    width: 220,
+    height: 220,
+    right: -90,
+    top: -70,
+    alignItems: "center",
+    justifyContent: "center",
+    opacity: 0.14,
+  },
+  drawerPatternIcon: { fontSize: 210, fontWeight: "900" },
+  drawerRing: {
+    position: "absolute",
+    width: 160,
+    height: 160,
+    borderRadius: 80,
+    borderWidth: 2,
   },
   drawerItem: {
     paddingVertical: 15,
