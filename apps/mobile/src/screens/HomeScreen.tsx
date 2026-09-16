@@ -1435,7 +1435,7 @@ export function HomeScreen({
                 accessibilityRole="button"
                 style={[s.drawerAction, { borderColor: themeColors.line }]}
               >
-                <Text style={{ color: themeColors.ink, fontSize: 26 }}>{dark ? "◐" : "◑"}</Text>
+                <Text style={{ color: themeColors.ink, fontSize: 30, lineHeight: 32 }}>{dark ? "◐" : "◑"}</Text>
               </Pressable>
               <Pressable
                 onPress={() => {
@@ -1445,7 +1445,7 @@ export function HomeScreen({
                 accessibilityRole="button"
                 style={[s.drawerAction, { borderColor: themeColors.line }]}
               >
-                <Text style={{ color: themeColors.danger, fontSize: 26 }}>→</Text>
+                <Text style={{ color: themeColors.danger, fontSize: 30, lineHeight: 32 }}>→</Text>
               </Pressable>
             </View>
           </View>
@@ -1460,7 +1460,7 @@ export function HomeScreen({
               style={s.drawerItem}
             >
               <Text style={[s.drawerItemText, { color: themeColors.ink }]}>
-                <Text style={{ color: themeColors.purple, marginRight: 14, fontSize: 22 }}>{item.icon}</Text>
+                <Text style={{ color: themeColors.purple, marginRight: 18, fontSize: 26 }}>{item.icon}</Text>
                 {item.title}
               </Text>
             </Pressable>
@@ -1519,13 +1519,14 @@ const s = StyleSheet.create({
   drawerBrand: { fontSize: 19, fontWeight: "800", letterSpacing: 1.4 },
   drawerUser: { fontSize: 16, fontWeight: "800" },
   drawerAction: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 54,
+    height: 54,
+    borderRadius: 27,
     borderWidth: 1,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "transparent",
+    padding: 0,
   },
   drawerOrbOne: {
     position: "absolute",
