@@ -13,9 +13,10 @@ import { pauseTracking } from "./src/features/location/engine";
 import { AuthScreen } from "./src/screens/AuthScreen";
 import { HomeScreen } from "./src/screens/HomeScreen";
 import type { AuthMode, User } from "./src/screens/types";
-import { colors } from "./src/ui/theme";
+import { ThemeProvider, useTheme } from "./src/ui/theme";
 
-export default function App() {
+function Root() {
+  const { colors, dark } = useTheme();
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   useEffect(() => {
@@ -62,7 +63,7 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
-        <StatusBar style="dark" />
+        <StatusBar style={dark ? "light" : "dark"} />
         {loading ? (
           <View style={{ flex: 1, justifyContent: "center" }}>
             <ActivityIndicator size="large" color={colors.purple} />
@@ -74,5 +75,13 @@ export default function App() {
         )}
       </SafeAreaView>
     </SafeAreaProvider>
+  );
+}
+
+export default function App() {
+  return (
+    <ThemeProvider>
+      <Root />
+    </ThemeProvider>
   );
 }

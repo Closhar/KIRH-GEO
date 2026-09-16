@@ -37,7 +37,7 @@ import {
   Title,
   ui,
 } from "../ui/components";
-import { colors as c } from "../ui/theme";
+import { colors as c, useTheme } from "../ui/theme";
 import {
   Grant,
   Group,
@@ -47,10 +47,10 @@ import {
   User,
   Workspace,
 } from "./types";
-import { MapScreen } from "./MapScreen";
+import { HomeDashboard } from "./HomeDashboard";
 import { PrivacyPanel } from "../features/privacy/PrivacyPanel";
 
-type Tab = "map" | "sender" | "group" | "more";
+type Tab = "home" | "sender" | "group" | "settings";
 type TrackingStatus = {
   enabled: boolean;
   mode: LocationMode;
@@ -75,10 +75,10 @@ type Fence = { id: string; name: string; radius_m: number };
 type LiveSession = { id: string; subject_id: string; initiator_id: string; status: string; expires_at: string };
 type SosEvent = { id: string; user_id: string; status: string; started_at: string };
 const tabs: { id: Tab; title: string; icon: string }[] = [
-  { id: "map", title: "Карта", icon: "◎" },
+  { id: "home", title: "Главная", icon: "◎" },
   { id: "sender", title: "Передача", icon: "↗" },
   { id: "group", title: "Группа", icon: "♧" },
-  { id: "more", title: "Ещё", icon: "•••" },
+  { id: "settings", title: "Настройки", icon: "⚙" },
 ];
 const modeLabels: Record<LocationMode, string> = {
   idle: "Покой",
@@ -97,7 +97,8 @@ export function HomeScreen({
   onLogout: () => Promise<void>;
   onDeleted: () => void;
 }) {
-  const [tab, setTab] = useState<Tab>("map");
+  const { colors: themeColors, dark, toggle } = useTheme();
+  const [tab, setTab] = useState<Tab>("home");
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [workspaceId, setWorkspaceId] = useState("");
   const [groups, setGroups] = useState<Group[]>([]);
@@ -139,6 +140,7 @@ export function HomeScreen({
   const [liveId, setLiveId] = useState("");
   const [liveSessions, setLiveSessions] = useState<LiveSession[]>([]);
   const [sosEvents, setSosEvents] = useState<SosEvent[]>([]);
+  const [entitlements, setEntitlements] = useState<Record<string, boolean | number> | null>(null);
   const activeWorkspace = useRef("");
   const keys = useRef<Record<string, string>>({});
   const actionRunning = useRef(false);
@@ -403,6 +405,7 @@ export function HomeScreen({
     await act("more", async () => {
       setPlans(await api<Plan[]>("billing/catalog"));
       setNotifications(await api<typeof notifications>("notifications"));
+      setEntitlements(await api<Record<string, boolean | number>>(`workspaces/${workspaceId}/effective-entitlements`));
       if (isOwner)
         setFences(await api<Fence[]>(`workspaces/${workspaceId}/geofences`));
     });
@@ -430,7 +433,7 @@ export function HomeScreen({
     });
   }
   useEffect(() => {
-    if (tab === "more" && workspaceId) void loadMore();
+    if (tab === "settings" && workspaceId) void loadMore();
   }, [tab, workspaceId]);
 
   return (
@@ -472,13 +475,13 @@ export function HomeScreen({
               : "Создайте свою группу или присоединитесь по коду."
           }
         >
-          {tab === "map"
-            ? "Близкие рядом"
+          {tab === "home"
+            ? "Ваше местоположение"
             : tab === "sender"
               ? "Моя геопозиция"
               : tab === "group"
                 ? "Свои люди"
-                : "Всё под рукой"}
+                : "Настройки"}
         </Title>
         {workspaces.length > 1 && (
           <ScrollView
@@ -509,7 +512,7 @@ export function HomeScreen({
             <Text style={ui.muted}>Выполняем…</Text>
           </View>
         ) : null}
-        {!workspaceId && (
+        {!workspaceId && tab === "home" && (
           <>
             <Card>
               <Text style={ui.heading}>Начните со своей семьи</Text>
@@ -548,11 +551,21 @@ export function HomeScreen({
             </Card>
           </>
         )}
-        {workspaceId && tab === "map" && (
-          <MapScreen
+        {!workspaceId && tab !== "home" && tab !== "settings" && (
+          <Card>
+            <Text style={ui.text}>
+              Сначала создайте своё пространство или присоединитесь по коду на
+              главной странице.
+            </Text>
+          </Card>
+        )}
+        {workspaceId && tab === "home" && (
+          <HomeDashboard
+            user={user}
             workspaceId={workspaceId}
             positions={positions}
             onRefresh={refresh}
+            onSendCoordinates={() => setTab("sender")}
           />
         )}
         {workspaceId && tab === "sender" && (
@@ -885,7 +898,25 @@ export function HomeScreen({
             )}
           </>
         )}
-        {workspaceId && tab === "more" && (
+        {tab === "settings" && (
+          <Card>
+            <Text style={ui.heading}>Профиль и оформление</Text>
+            <Text style={ui.text}>
+              {user.name}
+              {user.email ? ` · ${user.email}` : ""}
+            </Text>
+            <View style={[ui.row, { justifyContent: "space-between" }]}>
+              <Text style={ui.text}>Тёмная тема</Text>
+              <Chip active={dark} onPress={toggle}>
+                {dark ? "Включена" : "Выключена"}
+              </Chip>
+            </View>
+            <Text style={ui.muted}>
+              Сейчас используется {dark ? "тёмная" : "светлая"} тема.
+            </Text>
+          </Card>
+        )}
+        {workspaceId && tab === "settings" && (
           <>
             <Card>
               <Text style={ui.heading}>Не пропустите важное</Text>
@@ -1107,6 +1138,26 @@ export function HomeScreen({
                 </Button>
               </Card>
             )}
+            {entitlements && (
+              <Card>
+                <Text style={ui.heading}>Ваш доступ</Text>
+                <Text style={ui.text}>
+                  GPS:{" "}
+                  {entitlements["location.enabled"]
+                    ? "включена"
+                    : "недоступна"}
+                </Text>
+                <Text style={ui.text}>
+                  История: {String(entitlements["history.retention_days"] ?? "—")}{" "}
+                  дней · Участников:{" "}
+                  {String(entitlements["members.max"] ?? "—")}
+                </Text>
+                <Text style={ui.muted}>
+                  Это может быть тестовый режим, тариф или пробный доступ.
+                  Управление тестовым режимом находится в админке.
+                </Text>
+              </Card>
+            )}
             {workspace?.billing_owner_user_id === user.id && (
               <Card>
               <Text style={ui.heading}>Подписка вашей группы</Text>
@@ -1243,10 +1294,10 @@ export function HomeScreen({
             </Card>
           </>
         )}
-        {(tab === "more" || !workspaceId) && (
+        {tab === "settings" && (
           <PrivacyPanel onDeleted={onDeleted}/>
         )}
-        {(tab === "more" || !workspaceId) && (
+        {tab === "settings" && (
           <Button tone="ghost" onPress={() => act("logout", onLogout)}>
             Выйти из аккаунта
           </Button>
