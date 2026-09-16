@@ -15,7 +15,7 @@ final class TestAccessService
     private const ENABLED_KEY = 'test_access_enabled';
     private const LIMITS_KEY = 'test_access_limits';
     private const SOURCE_TYPE = 'test';
-    private const SOURCE_ID = 'platform-test';
+    private const SOURCE_ID = '00000000-0000-0000-0000-000000000099';
     private const PRIORITY = 500;
 
     public function enabled(): bool

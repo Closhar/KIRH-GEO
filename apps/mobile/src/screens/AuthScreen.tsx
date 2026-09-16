@@ -131,7 +131,7 @@ export function AuthScreen({
               setError("");
             }}
           >
-            Создать семью
+            Создать группу
           </Chip>
           <Chip
             active={mode === "join"}

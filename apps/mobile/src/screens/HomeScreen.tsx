@@ -2,8 +2,11 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  Animated,
   AppState,
+  Dimensions,
   Linking,
+  Modal,
   Platform,
   Pressable,
   RefreshControl,
@@ -116,7 +119,7 @@ export function HomeScreen({
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [refreshing, setRefreshing] = useState(false);
-  const [workspaceName, setWorkspaceName] = useState("Моя семья");
+  const [workspaceName, setWorkspaceName] = useState("Моя группа");
   const [groupName, setGroupName] = useState("Близкие");
   const [joinCode, setJoinCode] = useState("");
   const [inviteCode, setInviteCode] = useState("");
@@ -141,6 +144,8 @@ export function HomeScreen({
   const [liveSessions, setLiveSessions] = useState<LiveSession[]>([]);
   const [sosEvents, setSosEvents] = useState<SosEvent[]>([]);
   const [entitlements, setEntitlements] = useState<Record<string, boolean | number> | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuAnim = useRef(new Animated.Value(0)).current;
   const activeWorkspace = useRef("");
   const keys = useRef<Record<string, string>>({});
   const actionRunning = useRef(false);
@@ -176,6 +181,22 @@ export function HomeScreen({
     const result = await api<T>(path, "POST", body, key);
     delete keys.current[name];
     return result;
+  }
+  function openMenu() {
+    setMenuOpen(true);
+    Animated.spring(menuAnim, {
+      toValue: 1,
+      useNativeDriver: true,
+      speed: 18,
+      bounciness: 4,
+    }).start();
+  }
+  function closeMenu() {
+    Animated.timing(menuAnim, {
+      toValue: 0,
+      duration: 180,
+      useNativeDriver: true,
+    }).start(() => setMenuOpen(false));
   }
   async function loadWorkspaces(preferred?: string) {
     const all = await api<Workspace[]>("workspaces");
@@ -440,21 +461,31 @@ export function HomeScreen({
     <View style={ui.page}>
       <View style={s.header}>
         <Brand compact />
-        <View
-          style={[
-            s.statusPill,
-            { backgroundColor: status.enabled ? c.greenSoft : c.purpleSoft },
-          ]}
-        >
-          <Text
-            style={{
-              color: status.enabled ? "#008264" : c.purple,
-              fontSize: 11,
-              fontWeight: "700",
-            }}
+        <View style={ui.row}>
+          <View
+            style={[
+              s.statusPill,
+              { backgroundColor: status.enabled ? c.greenSoft : c.purpleSoft },
+            ]}
           >
-            {status.enabled ? "● Передаю" : "○ На паузе"}
-          </Text>
+            <Text
+              style={{
+                color: status.enabled ? "#008264" : c.purple,
+                fontSize: 11,
+                fontWeight: "700",
+              }}
+            >
+              {status.enabled ? "● Передаю" : "○ На паузе"}
+            </Text>
+          </View>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Открыть меню"
+            onPress={openMenu}
+            style={s.menuButton}
+          >
+            <Text style={s.menuIcon}>☰</Text>
+          </Pressable>
         </View>
       </View>
       <ScrollView
@@ -515,14 +546,14 @@ export function HomeScreen({
         {!workspaceId && tab === "home" && (
           <>
             <Card>
-              <Text style={ui.heading}>Начните со своей семьи</Text>
+              <Text style={ui.heading}>Начните со своей группы</Text>
               <Field
                 label="Название пространства"
                 value={workspaceName}
                 onChangeText={setWorkspaceName}
               />
               <Button onPress={createFamily} busy={busy === "create"}>
-                Создать семью
+                Создать группу
               </Button>
             </Card>
             <Card>
@@ -1333,6 +1364,67 @@ export function HomeScreen({
           </Pressable>
         ))}
       </View>
+      <Modal transparent visible={menuOpen} animationType="none" onRequestClose={closeMenu}>
+        <Pressable style={{ flex: 1, backgroundColor: "rgba(20,17,30,0.42)" }} onPress={closeMenu} />
+        <Animated.View
+          style={[
+            s.drawer,
+            {
+              transform: [
+                {
+                  translateX: menuAnim.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [Dimensions.get("window").width, 0],
+                  }),
+                },
+              ],
+            },
+          ]}
+        >
+          <View style={ui.row}>
+            <Brand compact />
+            <Pressable onPress={closeMenu} accessibilityRole="button">
+              <Text style={s.drawerClose}>✕</Text>
+            </Pressable>
+          </View>
+          <View style={ui.divider} />
+          {tabs.map((item) => (
+            <Pressable
+              key={item.id}
+              onPress={() => {
+                setTab(item.id);
+                closeMenu();
+              }}
+              style={s.drawerItem}
+            >
+              <Text style={s.drawerItemText}>{item.title}</Text>
+            </Pressable>
+          ))}
+          <View style={ui.divider} />
+          <Pressable
+            onPress={() => {
+              toggle();
+              closeMenu();
+            }}
+            style={s.drawerItem}
+          >
+            <Text style={s.drawerItemText}>
+              {dark ? "Светлая тема" : "Тёмная тема"}
+            </Text>
+          </Pressable>
+          <Pressable
+            onPress={() => {
+              closeMenu();
+              void act("logout", onLogout);
+            }}
+            style={s.drawerItem}
+          >
+            <Text style={[s.drawerItemText, { color: c.danger }]}>
+              Выйти из аккаунта
+            </Text>
+          </Pressable>
+        </Animated.View>
+      </Modal>
     </View>
   );
 }
@@ -1348,6 +1440,15 @@ const s = StyleSheet.create({
     borderColor: c.line,
   },
   statusPill: { paddingHorizontal: 10, paddingVertical: 8, borderRadius: 16 },
+  menuButton: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: c.purpleSoft,
+  },
+  menuIcon: { color: c.purple, fontSize: 24, fontWeight: "800" },
   tabs: {
     flexDirection: "row",
     backgroundColor: c.surface,
@@ -1359,6 +1460,25 @@ const s = StyleSheet.create({
   tab: { flex: 1, alignItems: "center", gap: 3, paddingVertical: 4 },
   tabIcon: { fontSize: 25, height: 31 },
   tabDot: { height: 3, width: 18, borderRadius: 2, backgroundColor: c.green },
+  drawer: {
+    position: "absolute",
+    top: 0,
+    bottom: 0,
+    right: 0,
+    width: 290,
+    backgroundColor: c.surface,
+    padding: 22,
+    gap: 8,
+    borderTopLeftRadius: 28,
+    borderBottomLeftRadius: 28,
+  },
+  drawerClose: { color: c.muted, fontSize: 22, fontWeight: "700" },
+  drawerItem: {
+    paddingVertical: 15,
+    paddingHorizontal: 8,
+    borderRadius: 14,
+  },
+  drawerItemText: { color: c.ink, fontSize: 17, fontWeight: "700" },
   miniAvatar: {
     width: 35,
     height: 35,
